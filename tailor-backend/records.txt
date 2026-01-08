@@ -1,0 +1,14 @@
+
+Customer: Abhay
+Phone: 3245698723
+Work: Shirt
+Status: Pending
+Delivery: 2026-01-29
+-------------------------
+
+Customer: Akash 
+Phone: 9689769586
+Work: Pant
+Status: Pending
+Delivery: 2026-01-27
+-------------------------
