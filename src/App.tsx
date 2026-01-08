@@ -1,190 +1,115 @@
-import React, { useState, useEffect } from 'react';
-import { initializeApp } from 'firebase/app';
-import { firebaseConfig } from "./firebase-config";
-import { getAnalytics } from "firebase/analytics";
-import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from 'firebase/auth';
-import { getFirestore, collection, addDoc, onSnapshot, query, orderBy, serverTimestamp } from 'firebase/firestore';
+import React, { useState, useEffect } from "react";
 
-// --- MAIN REACT COMPONENT ---
 function App() {
-  const [db, setDb] = useState(null);
-  const [auth, setAuth] = useState(null);
-  const [userId, setUserId] = useState(null);
-  const [customers, setCustomers] = useState([]);
-  const [newCustomerName, setNewCustomerName] = useState('');
-  const [newCustomerPhone, setNewCustomerPhone] = useState('');
-  const [newCustomerMeasurements, setNewCustomerMeasurements] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [feedback, setFeedback] = useState('');
+  const [tasks, setTasks] = useState([]);
+  const [taskName, setTaskName] = useState("");
+  const [taskDetails, setTaskDetails] = useState("");
 
-  // --- Firebase Initialization and Authentication ---
+  // Load tasks from localStorage
   useEffect(() => {
-    try {
-      // --- PASTE YOUR FIREBASE CONFIG HERE ---
-      // const firebaseConfig = {
-      //   apiKey: "YOUR_API_KEY",
-      //   authDomain: "YOUR_PROJECT.firebaseapp.com",
-      //   projectId: "YOUR_PROJECT_ID",
-      //   storageBucket: "YOUR_PROJECT.appspot.com",
-      //   messagingSenderId: "YOUR_SENDER_ID",
-      //   appId: "YOUR_APP_ID"
-      // };
-      // -----------------------------------------
-
-      const app = initializeApp(firebaseConfig);
-      const analytics = getAnalytics(app);
-      const database = getFirestore(app);
-      const authService = getAuth(app);
-      const appId = firebaseConfig.appId; // Use your app ID
-
-      setDb(database);
-      setAuth(authService);
-      setFeedback('Firebase initialized. Authenticating...');
-
-      const unsubscribe = onAuthStateChanged(authService, async (user) => {
-        if (user) {
-          setUserId(user.uid);
-          setFeedback(`Authenticated as user: ${user.uid}. Loading data...`);
-        } else {
-          await signInAnonymously(authService);
-        }
-      });
-      return () => unsubscribe();
-    } catch (error) {
-      console.error('Firebase initialization error:', error);
-      setFeedback(`Error: ${error.message}`);
-      setLoading(false);
-    }
+    const savedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    setTasks(savedTasks);
   }, []);
 
-  // --- Firestore Data Listener (Real-time Updates) ---
+  // Save tasks to localStorage
   useEffect(() => {
-    if (db && userId) {
-      setFeedback('Fetching customer data...');
-      try {
-        const customerCollectionRef = collection(db, `users/${userId}/customers`);
-        const q = query(customerCollectionRef, orderBy('createdAt', 'desc'));
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-          const customersArray = [];
-          snapshot.forEach((doc) => {
-            customersArray.push({ id: doc.id, ...doc.data() });
-          });
-          setCustomers(customersArray);
-          setLoading(false);
-          setFeedback('Data loaded successfully.');
-        }, (error) => {
-          console.error("Error listening to Firestore:", error);
-          setFeedback(`Error loading data: ${error.message}`);
-          setLoading(false);
-        });
-
-        return () => unsubscribe();
-      } catch (error) {
-        console.error("Error setting up snapshot listener:", error);
-        setFeedback(`Error loading data: ${error.message}`);
-        setLoading(false);
-      }
-    } else {
-      setLoading(true);
-    }
-  }, [db, userId]);
-
-  // --- Add a new customer to Firestore ---
-  const handleAddCustomer = async (e) => {
+  const addTask = (e) => {
     e.preventDefault();
-    if (!newCustomerName || !newCustomerPhone) {
-      setFeedback('Please fill in both name and phone number.');
-      return;
-    }
-    setFeedback('Adding new customer...');
-    try {
-      const customerCollectionRef = collection(db, `users/${userId}/customers`);
-      await addDoc(customerCollectionRef, {
-        name: newCustomerName,
-        phone: newCustomerPhone,
-        measurements: newCustomerMeasurements,
-        createdAt: serverTimestamp(),
-      });
-      setNewCustomerName('');
-      setNewCustomerPhone('');
-      setNewCustomerMeasurements('');
-      setFeedback('Customer added successfully!');
-    } catch (error) {
-      console.error('Error adding document:', error);
-      setFeedback(`Failed to add customer: ${error.message}`);
-    }
+    if (!taskName) return;
+
+    const newTask = {
+      id: Date.now(),
+      name: taskName,
+      details: taskDetails,
+    };
+
+    setTasks([newTask, ...tasks]);
+    setTaskName("");
+    setTaskDetails("");
+  };
+
+  // Download as JSON
+  const downloadJSON = () => {
+    const data = JSON.stringify(tasks, null, 2);
+    const blob = new Blob([data], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "tasks.json";
+    a.click();
+  };
+
+  // Download as TXT
+  const downloadTXT = () => {
+    const text = tasks
+      .map(
+        (task, i) =>
+          `${i + 1}. ${task.name}\n${task.details}\n------------------`
+      )
+      .join("\n");
+
+    const blob = new Blob([text], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "tasks.txt";
+    a.click();
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 p-8 flex flex-col items-center">
-      <div className="w-full max-w-4xl bg-white shadow-xl rounded-2xl p-8">
-        <header className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Tailor Manager</h1>
-          <p className="text-gray-500">Your personal customer and order tracker.</p>
-          {userId && (
-            <div className="mt-4 text-sm text-gray-600">
-              <span className="font-semibold">User ID:</span> {userId}
-            </div>
-          )}
-        </header>
+    <div className="min-h-screen bg-gray-100 p-8 flex justify-center">
+      <div className="w-full max-w-3xl bg-white p-6 rounded-xl shadow">
+        <h1 className="text-3xl font-bold mb-6 text-center">
+          Task Manager (No Database)
+        </h1>
 
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-gray-700 mb-4">Add a New Customer</h2>
-          <form onSubmit={handleAddCustomer} className="space-y-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <input
-                type="text"
-                placeholder="Customer Name"
-                value={newCustomerName}
-                onChange={(e) => setNewCustomerName(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <input
-                type="text"
-                placeholder="Phone Number"
-                value={newCustomerPhone}
-                onChange={(e) => setNewCustomerPhone(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <textarea
-              placeholder="Measurements or Order Details"
-              value={newCustomerMeasurements}
-              onChange={(e) => setNewCustomerMeasurements(e.target.value)}
-              rows="3"
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-            ></textarea>
-            <button
-              type="submit"
-              className="w-full bg-blue-600 text-white font-semibold py-3 rounded-lg hover:bg-blue-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
-            >
-              Add Customer
-            </button>
-          </form>
-          <div className="mt-4 text-sm text-center text-gray-500">{feedback}</div>
+        <form onSubmit={addTask} className="space-y-4">
+          <input
+            type="text"
+            placeholder="Task Name"
+            value={taskName}
+            onChange={(e) => setTaskName(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+
+          <textarea
+            placeholder="Task Details"
+            value={taskDetails}
+            onChange={(e) => setTaskDetails(e.target.value)}
+            className="w-full p-2 border rounded"
+          />
+
+          <button className="w-full bg-blue-600 text-white py-2 rounded">
+            Add Task
+          </button>
+        </form>
+
+        <div className="flex gap-4 mt-4">
+          <button
+            onClick={downloadJSON}
+            className="flex-1 bg-green-600 text-white py-2 rounded"
+          >
+            Download JSON
+          </button>
+          <button
+            onClick={downloadTXT}
+            className="flex-1 bg-purple-600 text-white py-2 rounded"
+          >
+            Download TXT
+          </button>
         </div>
 
-        <div>
-          <h2 className="text-2xl font-semibold text-gray-700 mb-4">Customer List</h2>
-          {loading ? (
-            <p className="text-center text-gray-500">Loading customers...</p>
-          ) : customers.length === 0 ? (
-            <p className="text-center text-gray-500">No customers found. Add one above!</p>
-          ) : (
-            <ul className="space-y-4">
-              {customers.map((customer) => (
-                <li key={customer.id} className="bg-gray-50 p-6 rounded-xl shadow-inner">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-lg font-medium text-gray-900">{customer.name}</span>
-                    <span className="text-sm text-gray-500">{customer.phone}</span>
-                  </div>
-                  <p className="text-sm text-gray-600 whitespace-pre-wrap">{customer.measurements}</p>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <ul className="mt-6 space-y-3">
+          {tasks.map((task) => (
+            <li key={task.id} className="p-4 bg-gray-50 rounded shadow">
+              <h3 className="font-semibold">{task.name}</h3>
+              <p className="text-sm text-gray-600">{task.details}</p>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
