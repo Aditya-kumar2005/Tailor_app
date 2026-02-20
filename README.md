@@ -1,73 +1,41 @@
-# React + TypeScript + Vite
+# Tailor App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Simple Next‑JS/Vite frontend with an Express backend that stores everything in memory.
 
-Currently, two official plugins are available:
+## Getting started
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Backend
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cd tailor-backend
+npm install   # if not already
+node server.js
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Server listens on **http://localhost:5000**. It includes a `/login` endpoint with hardcoded users:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- `admin@example.com` / `admin` (Admin)
+- `staff@example.com` / `staff` (Staff)
+- `cust@example.com` / `cust` (Customer)
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+All other data (customers, orders, etc.) is stored in JS arrays and lost when the process exits.
+
+The backend also exposes `/save` for compatibility and CRUD routes for each collection.
+
+### Frontend
+
+```bash
+cd Tailor_app
+npm install
+npm run dev   # starts on http://localhost:5175 (or next free port)
 ```
+
+Login form sends credentials to the backend and redirects to the dashboard on success. Credentials are persisted to `localStorage` so refreshes keep you signed in.
+
+Protected routes (`/customers`, `/orders`, etc.) require an authenticated user with the appropriate role.
+
+## Notes
+
+The project is intended for demo purposes only. No real authentication is in place and passwords are stored in plaintext in memory.
+
+Feel free to extend with a database, proper auth, or remove the in‑memory stub as needed.
