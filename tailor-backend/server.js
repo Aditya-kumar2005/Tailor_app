@@ -1,5 +1,14 @@
 // import dotenv from "./"
 require('dotenv').config();
+// pull database configuration from environment variables
+const {
+  DB_HOST,
+  DB_USER,
+  DB_PASS,
+  DB_NAME,
+  DB_CONN_LIMIT
+} = process.env;
+
 const jwt       = require('jsonwebtoken');
 const bcrypt    = require('bcrypt');
 const express = require("express");
@@ -12,13 +21,16 @@ const mysql = require('mysql2/promise');
 let pool;
 
 async function initDb() {
+  if (!DB_HOST || !DB_USER || !DB_PASS || !DB_NAME) {
+    throw new Error('Database configuration missing. Please set DB_HOST, DB_USER, DB_PASS and DB_NAME in environment.');
+  }
   pool = await mysql.createPool({
-    host: HOSTNAME,
-    user: USERNAME,
-    password: PASSWORD,      // change as appropriate
-    database: DATABASE,
+    host: DB_HOST,
+    user: DB_USER,
+    password: DB_PASS,      // change as appropriate
+    database: DB_NAME,
     waitForConnections: true,
-    connectionLimit:CONNECTIONLIMIT,
+    connectionLimit: Number(DB_CONN_LIMIT) || 10,
     queueLimit: 0
   });
 
