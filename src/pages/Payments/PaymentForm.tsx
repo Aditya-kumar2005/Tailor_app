@@ -37,54 +37,62 @@ const PaymentForm: React.FC = () => {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">New Payment</h2>
-      {error && <p className="text-red-500 mb-2">{error}</p>}
-      <form onSubmit={handleSubmit}>
+    <div className="flex flex-col items-center justify-center p-6 mt-20 border-2 rounded shadow-lg w-full max-w-full mx-auto">
+      <h2 className="text-4xl font-bold text-blue-500 mb-4">New Payment</h2>
+      {error && <p className="text-red-600 font-medium mb-4 bg-red-100 px-4 py-2 rounded-lg shadow-sm">{error}</p>}
+      <form onSubmit={handleSubmit} className="space-y-6 w-full">
+        <label className="text-2xl text-blue-500 font-semibold mb-2">Order ID</label>
         <input
           type="number"
           placeholder="Order ID"
           value={orderId}
           onChange={(e) => setOrderId(e.target.value)}
-          className="border p-2 w-full mb-2"
+          className="w-full px-4 py-3 rounded-lg border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm transition duration-200"
         />
+      <label className="text-2xl text-blue-500 font-semibold mb-2">Amount</label>
         <input
           type="number"
           placeholder="Amount"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          className="border p-2 w-full mb-2"
+          className="w-full px-4 py-3 rounded-lg border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm transition duration-200"
         />
+      <label className="text-2xl text-blue-500 font-semibold mb-2">Status</label>
         <select
           value={status}
           onChange={(e) => setStatus(e.target.value)}
-          className="border p-2 w-full mb-2"
+          className="w-full px-4 py-3 rounded-lg border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm transition duration-200"
         >
           <option>Paid</option>
           <option>Pending</option>
           <option>Partial</option>
         </select>
+        <label className="text-2xl text-blue-500 font-semibold mb-2">Payment Mode</label>
         <select
           value={method}
           onChange={(e) => setMethod(e.target.value)}
-          className="border p-2 w-full mb-2"
+          className="w-full px-4 py-3 rounded-lg border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm transition duration-200"
         >
           <option>Cash</option>
           <option>Card</option>
           <option>Digital</option>
         </select>
+        <label className="text-2xl text-blue-500 font-semibold mb-2">Payment Date</label>
         <input
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
-          className="border p-2 w-full mb-2"
+          className="w-full px-4 py-3 rounded-lg border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm transition duration-200"
         />
-        <button
+
+        <div className="flex justify-center mt-6">
+            <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          className="px-50 h-13 rounded-lg bg-blue-600 text-xl text-white font-bold hover:bg-white hover:text-blue-600 hover:border-2"
         >
           Save
         </button>
+        </div>
       </form>
     </div>
   );

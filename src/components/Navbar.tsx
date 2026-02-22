@@ -11,8 +11,8 @@ const Navbar: React.FC = () => {
   const role = user.profile?.role;
 
   return (
-    <nav className="fixed w-full bg-purple-800 text-white p-4 flex justify-between items-center ">
-      <Link to="/" className="font-serif text-3xl font-bold hover:underline">Tailor Management System</Link>
+    <nav className="fixed w-full bg-white text-black p-4 flex justify-between items-center shadow-violet-700 ">
+      <Link to="/" className="font-serif text-blue-600 text-3xl font-bold hover:underline">Tailor Management System</Link>
       <div className="space-x-4">
         {/* Shared links */}
         <Link to="/dashboard" className="hover:underline">Dashboard</Link>
@@ -44,7 +44,7 @@ const Navbar: React.FC = () => {
           <Link
             to={""}
             onClick={() => dispatch(logout())}
-            className="bg-red-500 px-3 py-1 rounded ml-4"
+            className="px-5 py-3 ml-4 border-blue-600 border-2 hover:text-white hover:bg-blue-600 rounded-xl"
           >
             Logout
           </Link>

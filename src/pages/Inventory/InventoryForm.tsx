@@ -28,9 +28,9 @@ const InventoryForm: React.FC = () => {
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">Add Inventory Item</h2>
-      {error && <p className="text-red-500 mb-2">{error}</p>}
       <Form
+      formname="Add Inventory Item"
+      error={error}
       fields={[
         { label: "Name", type: "text", value: name, onChange: e => setName(e.target.value) },
         { label: "Type", type: "text", value: type, onChange: e => setType(e.target.value) },

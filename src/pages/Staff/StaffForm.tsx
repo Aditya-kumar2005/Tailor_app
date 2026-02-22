@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import api from "../../api";
 import { addStaff } from "../../slices/staffSlice";
+import  Form  from "../../components/Form";
 
 const StaffForm: React.FC = () => {
   const dispatch = useDispatch();
@@ -25,15 +26,16 @@ const StaffForm: React.FC = () => {
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">Add Staff</h2>
-      {error && <p className="text-red-500 mb-2">{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <input type="text" placeholder="Name" value={name}
-          onChange={(e)=>setName(e.target.value)} className="border p-2 w-full mb-2"/>
-        <input type="text" placeholder="Role" value={role}
-          onChange={(e)=>setRole(e.target.value)} className="border p-2 w-full mb-2"/>
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save</button>
-      </form>
+      <Form
+      formname="Staff Role"
+      error={error}
+      fields={[
+        { label: "Name", type: "text", value: name, onChange: e => setName(e.target.value) },
+        { label: "Role", type: "text", value: role, onChange: e => setRole(e.target.value) },
+        // { label: "Email", type: "email", value: email, onChange: e => setEmail(e.target.value) }
+      ]}
+      onSubmit={handleSubmit}
+      />
     </div>
   );
 };

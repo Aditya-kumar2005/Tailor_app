@@ -52,7 +52,7 @@ const TailorDashboard: React.FC = () => {
 
   useEffect(() => {
     if (garmentTypeFilter) {
-      setFilteredMeasurements(measurements.filter((m: any) => m.garmentType === garmentTypeFilter));
+      setFilteredMeasurements(measurements.filter((m: any) => m.garmentType === garmentTypeFilter) as Measurement[]);
     } else {
       setFilteredMeasurements(measurements as Measurement[]);
     }

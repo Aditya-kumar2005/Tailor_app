@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import api from "../../api";
 import { addOrder } from "../../slices/orderSlice";
+import  Form  from "../../components/Form";
 
 const OrderForm: React.FC = () => {
   const dispatch = useDispatch();
   const [garment, setGarment] = useState("");
+  const [phone, setPhone] = useState("");
   const [deliveryDate, setDeliveryDate] = useState("");
   const [error, setError] = useState("");
 
@@ -25,15 +27,16 @@ const OrderForm: React.FC = () => {
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">Create Order</h2>
-      {error && <p className="text-red-500 mb-2">{error}</p>}
-      <form onSubmit={handleSubmit}>
-        <input type="text" placeholder="Garment Type" value={garment}
-          onChange={(e)=>setGarment(e.target.value)} className="border p-2 w-full mb-2"/>
-        <input type="date" value={deliveryDate}
-          onChange={(e)=>setDeliveryDate(e.target.value)} className="border p-2 w-full mb-2"/>
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save</button>
-      </form>
+      <Form
+      formname="Create Order"
+      error={error}
+      fields={[
+        { label: "Garment", type: "text", value: garment, onChange: e => setGarment(e.target.value) },
+        { label: "Phone", type: "text", value: phone, onChange: e => setPhone(e.target.value) },
+        { label: "DeliveryDate", type: "date", value: deliveryDate, onChange: e => setDeliveryDate(e.target.value) }
+      ]}
+      onSubmit={handleSubmit}
+      />
     </div>
   );
 };

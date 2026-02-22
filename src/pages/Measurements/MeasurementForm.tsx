@@ -28,9 +28,9 @@ const MeasurementForm: React.FC = () => {
 
   return (
     <div className="p-6">
-      <h2 className="text-xl font-bold mb-4">Add Measurement</h2>
-      {error && <p className="text-red-500 mb-2">{error}</p>}
       <Form
+      formname="Add Measurement"
+      error={error}
       fields={[
         { label: "Garment", type: "text", value:garment, onChange: e => setGarment(e.target.value) },
         { label: "Chest", type: "number", value: chest, onChange: e => setChest(e.target.value) },

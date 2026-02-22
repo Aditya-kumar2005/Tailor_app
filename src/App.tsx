@@ -101,7 +101,7 @@ const App: React.FC = () => {
 
         <Route path="/reports/revenue" element={
           <ProtectedRoute allowedRoles={["Admin"]}>
-             <div>
+             <div className="mt-30 grid grid-cols-2 gap-30">
             <RevenueReport />
             <OrderReport />
             <CustomerReport />

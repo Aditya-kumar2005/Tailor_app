@@ -31,10 +31,10 @@ const CustomerForm: React.FC = () => {
   };
 
   return (
-    <div className="p-6 text-center  ">
-      <h2 className="text-xl font-bold mb-4">Add Customer</h2>
-      {error && <p className="text-red-500 mb-2">{error}</p>}
+    <div className="p-6">
       <Form
+      formname="Add Customer"
+      error={error}
       fields={[
         { label: "Name", type: "text", value: name, onChange: e => setName(e.target.value) },
         { label: "Phone", type: "text", value: phone, onChange: e => setPhone(e.target.value) },

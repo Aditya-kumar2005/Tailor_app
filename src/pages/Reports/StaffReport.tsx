@@ -7,7 +7,7 @@ const StaffReport: React.FC = () => {
   ];
 
   return (
-    <div className="p-6">
+    <div className=" p-6 text-center">
       <h2 className="text-xl font-bold mb-4">Staff Report</h2>
       <ul>
         {stats.map((s, i) => (

@@ -70,18 +70,18 @@ const TailorMeasurementForm: React.FC = () => {
   };
 
   return (
-    <div className="p-6 border rounded bg-white mb-6">
-      <h2 className="text-xl font-bold mb-4">Add Customer Measurement</h2>
+    <div className="p-6 border-2 rounded bg-white mb-6">
+      <h2 className="text-center text-4xl font-bold text-blue-500 mb-4">Add Customer Measurement</h2>
       {error && <p className="text-red-500 mb-2">{error}</p>}
       {success && <p className="text-green-500 mb-2">{success}</p>}
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4">
+      <form onSubmit={handleSubmit} className="grid grid-cols-2 grid-rows-2 gap-4">
         <div>
-          <label className="block font-semibold mb-1">Customer</label>
+          <label className="block text-2xl text-blue-500 font-semibold mb-2">Customer</label>
           <select
             value={customerId}
             onChange={(e) => setCustomerId(e.target.value)}
-            className="border p-2 w-full rounded"
+            className="w-full px-4 py-3 rounded-lg border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm transition duration-200"
           >
             <option value="">Select Customer</option>
             {customers.map(c => (
@@ -91,11 +91,11 @@ const TailorMeasurementForm: React.FC = () => {
         </div>
 
         <div>
-          <label className="block font-semibold mb-1">Garment Type</label>
+          <label className="block text-2xl text-blue-500 font-semibold mb-2">Garment Type</label>
           <select
             value={garmentType}
             onChange={(e) => setGarmentType(e.target.value)}
-            className="border p-2 w-full rounded"
+            className="w-full px-4 py-3 rounded-lg border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm transition duration-200"
           >
             {garmentTypes.map(type => (
               <option key={type} value={type}>{type}</option>
@@ -104,78 +104,77 @@ const TailorMeasurementForm: React.FC = () => {
         </div>
 
         <div>
-          <label className="block font-semibold mb-1">Chest (inches)</label>
+          <label className="block text-2xl text-blue-500 font-semibold mb-2">Chest (inches)</label>
           <input
             type="number"
             step="0.1"
             placeholder="e.g., 40"
             value={chest}
             onChange={(e) => setChest(e.target.value)}
-            className="border p-2 w-full rounded"
+            className="w-full px-4 py-3 rounded-lg border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm transition duration-200"
           />
         </div>
 
         <div>
-          <label className="block font-semibold mb-1">Waist (inches)</label>
+          <label className="block text-2xl text-blue-500 font-semibold mb-2">Waist (inches)</label>
           <input
             type="number"
             step="0.1"
             placeholder="e.g., 32"
             value={waist}
             onChange={(e) => setWaist(e.target.value)}
-            className="border p-2 w-full rounded"
+            className="w-full px-4 py-3 rounded-lg border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm transition duration-200"
           />
         </div>
 
         <div>
-          <label className="block font-semibold mb-1">Sleeve (inches)</label>
+          <label className="block text-2xl text-blue-500 font-semibold mb-2">Sleeve (inches)</label>
           <input
             type="number"
             step="0.1"
             placeholder="e.g., 34"
             value={sleeve}
             onChange={(e) => setSleeve(e.target.value)}
-            className="border p-2 w-full rounded"
+            className="w-full px-4 py-3 rounded-lg border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm transition duration-200"
           />
         </div>
 
         <div>
-          <label className="block font-semibold mb-1">Length (inches)</label>
+          <label className="block text-2xl text-blue-500 font-semibold mb-2">Length (inches)</label>
           <input
             type="number"
             step="0.1"
             placeholder="e.g., 30"
             value={length}
             onChange={(e) => setLength(e.target.value)}
-            className="border p-2 w-full rounded"
+            className="w-full px-4 py-3 rounded-lg border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm transition duration-200"
           />
         </div>
 
         <div>
-          <label className="block font-semibold mb-1">Price ($)</label>
+          <label className="block text-2xl text-blue-500 font-semibold mb-2">Price ($)</label>
           <input
             type="number"
             step="0.01"
             placeholder="e.g., 50.00"
             value={price}
             onChange={(e) => setPrice(e.target.value)}
-            className="border p-2 w-full rounded"
+            className="w-full px-4 py-3 rounded-lg border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm transition duration-200"
             required
           />
         </div>
 
         <div className="col-span-2">
-          <label className="block font-semibold mb-1">Notes</label>
+          <label className="block text-2xl text-blue-500 font-semibold mb-2">Notes</label>
           <textarea
             placeholder="Additional notes (optional)"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="border p-2 w-full rounded"
+            className="w-full px-4 py-3 rounded-lg border border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-600 shadow-sm transition duration-200"
             rows={3}
           />
-        </div>
-
-        <button type="submit" className="col-span-2 bg-blue-600 text-white px-4 py-2 rounded font-semibold hover:bg-blue-700">
+        </div >
+          <button type="submit" className="row-span-2 h-13 rounded-lg bg-blue-600 text-xl text-white font-bold hover:bg-white hover:text-blue-600 hover:border-2">
           Add Measurement
         </button>
       </form>
