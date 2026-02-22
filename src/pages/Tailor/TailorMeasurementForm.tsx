@@ -42,7 +42,7 @@ const TailorMeasurementForm: React.FC = () => {
     }
 
     try {
-      const resp = await api.post("/measurements", {
+      const resp = await api.post("/tailor/measurements", {
         customerId: Number(customerId),
         garmentType,
         chest: chest ? Number(chest) : undefined,

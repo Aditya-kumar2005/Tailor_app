@@ -4,10 +4,15 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 interface Measurement {
   id: number;
   customerId: number;
-  garment: string;
-  chest: number;
-  waist: number;
+  garment?: string;
+  garmentType?: string;
+  chest?: number;
+  waist?: number;
+  sleeve?: number;
+  length?: number;
+  price?: number;
   notes?: string;
+  customerName?: string;
 }
 
 interface MeasurementState {

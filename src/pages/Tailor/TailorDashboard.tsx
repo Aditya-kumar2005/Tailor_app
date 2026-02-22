@@ -32,7 +32,8 @@ const TailorDashboard: React.FC = () => {
   useEffect(() => {
     setLoading(true);
     setError("");
-    api.get("/measurements")
+    // fetch tailor-specific measurements which include customerName, price, garmentType
+    api.get("/tailor/measurements")
       .then(res => {
         if (Array.isArray(res.data)) {
           dispatch(setMeasurements(res.data));
@@ -49,13 +50,13 @@ const TailorDashboard: React.FC = () => {
       .finally(() => setLoading(false));
   }, [dispatch]);
 
-  // useEffect(() => {
-  //   if (garmentTypeFilter) {
-  //     setFilteredMeasurements(measurements.filter(m => m.garmentType === garmentTypeFilter));
-  //   } else {
-  //     setFilteredMeasurements(measurements);
-  //   }
-  // }, [garmentTypeFilter, measurements]);
+  useEffect(() => {
+    if (garmentTypeFilter) {
+      setFilteredMeasurements(measurements.filter((m: any) => m.garmentType === garmentTypeFilter));
+    } else {
+      setFilteredMeasurements(measurements as Measurement[]);
+    }
+  }, [garmentTypeFilter, measurements]);
 
   const garmentTypes = ["Shirt", "Pants", "Suit", "Dress", "Coat"];
 

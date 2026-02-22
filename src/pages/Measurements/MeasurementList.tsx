@@ -19,11 +19,27 @@ const MeasurementList: React.FC = () => {
       <h2 className="text-xl font-bold mb-4">Measurements</h2>
       <table className="table-auto w-full border">
         <thead>
-          <tr className="bg-gray-200"><th>Garment</th><th>Chest</th><th>Waist</th></tr>
+          <tr className="bg-gray-200">
+            <th>Customer</th>
+            <th>Garment Type</th>
+            <th>Garment</th>
+            <th>Chest</th>
+            <th>Waist</th>
+            <th>Price</th>
+            <th>Notes</th>
+          </tr>
         </thead>
         <tbody>
           {measurements.map(m => (
-            <tr key={m.id}><td>{m.garment}</td><td>{m.chest}</td><td>{m.waist}</td></tr>
+            <tr key={m.id}>
+              <td>{(m as any).customerName || ''}</td>
+              <td>{m.garmentType || ''}</td>
+              <td>{m.garment || ''}</td>
+              <td>{m.chest ?? ''}</td>
+              <td>{m.waist ?? ''}</td>
+              <td>{m.price ?? ''}</td>
+              <td>{m.notes || ''}</td>
+            </tr>
           ))}
         </tbody>
       </table>
