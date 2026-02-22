@@ -1,22 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "../../store";
+import { setInventory } from "../../slices/inventorySlice";
 import api from "../../api";
-
-interface Item {
-  id: number;
-  name: string;
-  type: string;
-  stock: number;
-}
+import InventoryForm from "./InventoryForm";
 
 const InventoryList: React.FC = () => {
-  const [items, setItems] = useState<Item[]>([]);
+  const dispatch = useDispatch();
+  const items = useSelector((state: RootState) => state.inventory.items);
 
   useEffect(() => {
-    api.get("/inventory").then(res => setItems(res.data));
-  }, []);
+    api.get("/inventory").then(res => dispatch(setInventory(res.data)));
+  }, [dispatch]);
 
   return (
     <div className="p-6">
+      <InventoryForm />
       <h2 className="text-xl font-bold mb-4">Inventory</h2>
       <table className="table-auto w-full border">
         <thead>

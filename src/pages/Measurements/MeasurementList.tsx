@@ -1,13 +1,21 @@
-import React from "react";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "../../store";
+import { setMeasurements } from "../../slices/measurementSlice";
+import api from "../../api";
+import MeasurementForm from "./MeasurementForm";
 
 const MeasurementList: React.FC = () => {
-  const measurements = [
-    { id: 1, garment: "Shirt", chest: 38, waist: 32 },
-    { id: 2, garment: "Suit", chest: 40, waist: 34 }
-  ];
+  const dispatch = useDispatch();
+  const measurements = useSelector((state: RootState) => state.measurements.list);
+
+  useEffect(() => {
+    api.get("/measurements").then(res => dispatch(setMeasurements(res.data)));
+  }, [dispatch]);
 
   return (
     <div className="p-6">
+      <MeasurementForm />
       <h2 className="text-xl font-bold mb-4">Measurements</h2>
       <table className="table-auto w-full border">
         <thead>

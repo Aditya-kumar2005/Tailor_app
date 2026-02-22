@@ -38,6 +38,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../store";
 import { setOrders } from "../../slices/orderSlice";
 import api from "../../api";
+import OrderForm from "./OrderForm";
 
 const OrderList: React.FC = () => {
   const dispatch = useDispatch();
@@ -49,6 +50,7 @@ const OrderList: React.FC = () => {
 
   return (
     <div className="p-6">
+      <OrderForm />
       <h2 className="text-xl font-bold mb-4">Orders</h2>
       <table className="table-auto w-full border">
         <thead>

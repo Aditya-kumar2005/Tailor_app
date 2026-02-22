@@ -1,21 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import type { RootState } from "../../store";
+import { setStaff } from "../../slices/staffSlice";
 import api from "../../api";
-
-interface Staff {
-  id: number;
-  name: string;
-  role: string;
-}
+import StaffForm from "./StaffForm";
 
 const StaffList: React.FC = () => {
-  const [staff, setStaff] = useState<Staff[]>([]);
+  const dispatch = useDispatch();
+  const staff = useSelector((state: RootState) => state.staff.list);
 
   useEffect(() => {
-    api.get("/staff").then(res => setStaff(res.data));
-  }, []);
+    api.get("/staff").then(res => dispatch(setStaff(res.data)));
+  }, [dispatch]);
 
   return (
     <div className="p-6">
+      <StaffForm />
       <h2 className="text-xl font-bold mb-4">Staff</h2>
       <table className="table-auto w-full border">
         <thead>

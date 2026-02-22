@@ -3,6 +3,9 @@ import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../store";
 import { setCustomers } from "../../slices/customerSlice";
 import api from "../../api";
+import CustomerForm from "./CustomerForm";
+import Table from "../../components/Table";
+// import CustomerProfile from "./CustomerProfile";
 
 const CustomerList: React.FC = () => {
   const dispatch = useDispatch();
@@ -14,21 +17,12 @@ const CustomerList: React.FC = () => {
 
   return (
     <div className="p-6">
+      <CustomerForm/>
       <h2 className="text-xl font-bold mb-4">Customers</h2>
-      <table className="table-auto w-full border">
-        <thead>
-          <tr className="bg-gray-200"><th>Name</th><th>Phone</th><th>Email</th></tr>
-        </thead>
-        <tbody>
-          {customers.map(c => (
-            <tr key={c.id}>
-              <td>{c.name}</td>
-              <td>{c.phone}</td>
-              <td>{c.email}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Table
+        headers={["Name", "Phone", "Email"]}
+        data={customers.map(c => [c.name ?? "", c.phone ?? "", c.email ?? ""])}
+      />
     </div>
   );
 };

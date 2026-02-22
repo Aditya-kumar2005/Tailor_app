@@ -1,190 +1,374 @@
+// import dotenv from "./"
+
 const express = require("express");
 const fs = require("fs");
 const cors = require("cors");
 const path = require("path");
 
+// mysql connection using mysql2 promise API
+const mysql = require('mysql2/promise');
+let pool;
+
+async function initDb() {
+  pool = await mysql.createPool({
+    host: 'localhost',
+    user: 'root',
+    password: 'Adity@25062005',      // change as appropriate
+    database: 'tailor',
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+  });
+
+  // execute schema file if exists
+  const schemaPath = path.join(__dirname, 'schema_mysql.sql');
+  if (fs.existsSync(schemaPath)) {
+    const sql = fs.readFileSync(schemaPath, 'utf-8');
+    const statements = sql.split(/;\s*\n/).map(s=>s.trim()).filter(Boolean);
+    for (const stmt of statements) {
+      await pool.query(stmt);
+    }
+  } else {
+    console.warn('schema_mysql.sql not found, database schema may be missing');
+  }
+
+  // ensure users table has name column (in case it existed before schema update)
+  try {
+    // check if the column already exists to avoid syntax errors on older MySQL
+    const [cols] = await pool.query("SHOW COLUMNS FROM users LIKE 'name'");
+    if (cols.length === 0) {
+      await pool.query("ALTER TABLE users ADD COLUMN name VARCHAR(255)");
+    }
+  } catch (e) {
+    // if something goes wrong, log but don't crash
+    console.warn('Could not verify/add name column in users table', e.message);
+  }
+}
+
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ensure data directory exists
-const dataDir = "data";
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir);
-}
-
-// in-memory stores
-let nextId = 1;
-const customers = [];
-const orders = [];
-const inventory = [];
-const payments = [];
-const staff = [];
-
-// hard-coded users for authentication
-const users = [
-  { id: 1, email: "admin@example.com", password: "admin", role: "Admin" },
-  { id: 2, email: "staff@example.com", password: "staff", role: "Staff" },
-  { id: 3, email: "cust@example.com", password: "cust", role: "Customer" },
-];
-
-// helper to find by id
-function findById(arr, id) {
-  return arr.find((i) => i.id === id);
-}
-
-// helper: save record to individual txt file
-function saveRecord(type, id, record) {
-  const filename = path.join(dataDir, `${type}_${id}.txt`);
-  const content = JSON.stringify(record, null, 2);
-  try {
-    fs.writeFileSync(filename, content, "utf-8");
-  } catch (err) {
-    console.error(`save error on ${filename}:`, err.message);
-  }
-}
+// no longer using in-memory arrays or file storage
 
 // ========== Authentication ==========
-app.post("/login", (req, res) => {
+app.post("/login", async (req, res) => {
   const { email, password } = req.body;
-  const user = users.find(u => u.email === email && u.password === password);
+  const [rows] = await pool.query(
+    "SELECT id, email, role FROM users WHERE email = ? AND password = ?",
+    [email, password]
+  );
+  const user = rows[0];
   if (!user) return res.status(401).json({ error: "Invalid credentials" });
-  res.json({ id: user.id, email: user.email, role: user.role });
+  res.json(user);
+});
+
+// basic registration support
+app.post("/auth/register", async (req, res) => {
+  const { name, email, password, role = "Customer" } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password required" });
+  }
+  const [exists] = await pool.query("SELECT 1 FROM users WHERE email = ?", [email]);
+  if (exists.length) {
+    return res.status(400).json({ error: "Email already in use" });
+  }
+  const [info] = await pool.query(
+    "INSERT INTO users (name,email,password,role) VALUES (?,?,?,?)",
+    [name || null, email, password, role]
+  );
+  const [user] = await pool.query("SELECT id,name,email,role FROM users WHERE id = ?", [info.insertId]);
+  res.status(201).json(user[0]);
+});
+
+// forgot password stub
+app.post("/auth/forgot-password", (req, res) => {
+  const { email } = req.body;
+  res.json({ message: `If ${email} exists we sent reset instructions.` });
 });
 
 // ========== Customers ==========
-app.get("/customers", (req, res) => res.json(customers));
-
-app.post("/customers", (req, res) => {
-  const item = { id: nextId++, ...req.body };
-  customers.push(item);
-  saveRecord("customer", item.id, item);
-  res.status(201).json(item);
+app.get("/customers", async (req, res) => {
+  const [rows] = await pool.query("SELECT * FROM customers");
+  res.json(rows);
 });
 
-app.put("/customers/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const existing = findById(customers, id);
-  if (!existing) return res.status(404).json({ error: "Not found" });
-  Object.assign(existing, req.body);
-  saveRecord("customer", id, existing);
-  res.json(existing);
+app.post("/customers", async (req, res) => {
+  const { name, phone, email } = req.body;
+  const [info] = await pool.query(
+    "INSERT INTO customers (name,phone,email) VALUES (?,?,?)",
+    [name, phone, email]
+  );
+  const [item] = await pool.query("SELECT * FROM customers WHERE id = ?", [info.insertId]);
+  res.status(201).json(item[0]);
 });
 
-app.delete("/customers/:id", (req, res) => {
+app.put("/customers/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const idx = customers.findIndex((c) => c.id === id);
-  if (idx === -1) return res.status(404).json({ error: "Not found" });
-  customers.splice(idx, 1);
+  const { name, phone, email } = req.body;
+  const [info] = await pool.query(
+    "UPDATE customers SET name=?, phone=?, email=? WHERE id=?",
+    [name, phone, email, id]
+  );
+  if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
+  const [updated] = await pool.query("SELECT * FROM customers WHERE id = ?", [id]);
+  res.json(updated[0]);
+});
+
+app.delete("/customers/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  const [info] = await pool.query("DELETE FROM customers WHERE id = ?", [id]);
+  if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
   res.json({ success: true });
 });
 
 // ========== Orders ==========
-app.get("/orders", (req, res) => res.json(orders));
-
-app.post("/orders", (req, res) => {
-  const item = { id: nextId++, ...req.body };
-  orders.push(item);
-  saveRecord("order", item.id, item);
-  res.status(201).json(item);
+app.get("/orders", async (req, res) => {
+  const [rows] = await pool.query("SELECT * FROM orders");
+  res.json(rows);
 });
 
-app.put("/orders/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const existing = findById(orders, id);
-  if (!existing) return res.status(404).json({ error: "Not found" });
-  Object.assign(existing, req.body);
-  saveRecord("order", id, existing);
-  res.json(existing);
+app.post("/orders", async (req, res) => {
+  const { garment, status, deliveryDate } = req.body;
+  const [info] = await pool.query(
+    "INSERT INTO orders (garment,status,deliveryDate) VALUES (?,?,?)",
+    [garment, status, deliveryDate]
+  );
+  const [item] = await pool.query("SELECT * FROM orders WHERE id = ?", [info.insertId]);
+  res.status(201).json(item[0]);
 });
 
-app.delete("/orders/:id", (req, res) => {
+app.put("/orders/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const idx = orders.findIndex((c) => c.id === id);
-  if (idx === -1) return res.status(404).json({ error: "Not found" });
-  orders.splice(idx, 1);
+  const { garment, status, deliveryDate } = req.body;
+  const [info] = await pool.query(
+    "UPDATE orders SET garment=?, status=?, deliveryDate=? WHERE id=?",
+    [garment, status, deliveryDate, id]
+  );
+  if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
+  const [updated] = await pool.query("SELECT * FROM orders WHERE id = ?", [id]);
+  res.json(updated[0]);
+});
+
+app.delete("/orders/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  const [info] = await pool.query("DELETE FROM orders WHERE id = ?", [id]);
+  if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
   res.json({ success: true });
 });
 
 // ========== Inventory ==========
-app.get("/inventory", (req, res) => res.json(inventory));
-
-app.post("/inventory", (req, res) => {
-  const item = { id: nextId++, ...req.body };
-  inventory.push(item);
-  saveRecord("inventory", item.id, item);
-  res.status(201).json(item);
+app.get("/inventory", async (req, res) => {
+  const [rows] = await pool.query("SELECT * FROM inventory");
+  res.json(rows);
 });
 
-app.put("/inventory/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const existing = findById(inventory, id);
-  if (!existing) return res.status(404).json({ error: "Not found" });
-  Object.assign(existing, req.body);
-  saveRecord("inventory", id, existing);
-  res.json(existing);
+app.post("/inventory", async (req, res) => {
+  const { name, type, stock } = req.body;
+  const [info] = await pool.query(
+    "INSERT INTO inventory (name,type,stock) VALUES (?,?,?)",
+    [name, type, stock]
+  );
+  const [item] = await pool.query("SELECT * FROM inventory WHERE id = ?", [info.insertId]);
+  res.status(201).json(item[0]);
 });
 
-app.delete("/inventory/:id", (req, res) => {
+app.put("/inventory/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const idx = inventory.findIndex((c) => c.id === id);
-  if (idx === -1) return res.status(404).json({ error: "Not found" });
-  inventory.splice(idx, 1);
+  const { name, type, stock } = req.body;
+  const [info] = await pool.query(
+    "UPDATE inventory SET name=?, type=?, stock=? WHERE id=?",
+    [name, type, stock, id]
+  );
+  if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
+  const [updated] = await pool.query("SELECT * FROM inventory WHERE id = ?", [id]);
+  res.json(updated[0]);
+});
+
+app.delete("/inventory/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  const [info] = await pool.query("DELETE FROM inventory WHERE id = ?", [id]);
+  if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
   res.json({ success: true });
 });
 
 // ========== Payments ==========
-app.get("/payments", (req, res) => res.json(payments));
-
-app.post("/payments", (req, res) => {
-  const item = { id: nextId++, ...req.body };
-  payments.push(item);
-  saveRecord("payment", item.id, item);
-  res.status(201).json(item);
+app.get("/payments", async (req, res) => {
+  const [rows] = await pool.query("SELECT * FROM payments");
+  res.json(rows);
 });
 
-app.put("/payments/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const existing = findById(payments, id);
-  if (!existing) return res.status(404).json({ error: "Not found" });
-  Object.assign(existing, req.body);
-  saveRecord("payment", id, existing);
-  res.json(existing);
+app.post("/payments", async (req, res) => {
+  const { orderId, amount, status, method, date } = req.body;
+  const [info] = await pool.query(
+    "INSERT INTO payments (orderId,amount,status,method,date) VALUES (?,?,?,?,?)",
+    [orderId, amount, status, method, date]
+  );
+  const [item] = await pool.query("SELECT * FROM payments WHERE id = ?", [info.insertId]);
+  res.status(201).json(item[0]);
 });
 
-app.delete("/payments/:id", (req, res) => {
+app.put("/payments/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const idx = payments.findIndex((c) => c.id === id);
-  if (idx === -1) return res.status(404).json({ error: "Not found" });
-  payments.splice(idx, 1);
+  const { orderId, amount, status, method, date } = req.body;
+  const [info] = await pool.query(
+    "UPDATE payments SET orderId=?, amount=?, status=?, method=?, date=? WHERE id=?",
+    [orderId, amount, status, method, date, id]
+  );
+  if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
+  const [updated] = await pool.query("SELECT * FROM payments WHERE id = ?", [id]);
+  res.json(updated[0]);
+});
+
+app.delete("/payments/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  const [info] = await pool.query("DELETE FROM payments WHERE id = ?", [id]);
+  if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
   res.json({ success: true });
 });
 
 // ========== Staff ==========
-app.get("/staff", (req, res) => res.json(staff));
-
-app.post("/staff", (req, res) => {
-  const item = { id: nextId++, ...req.body };
-  staff.push(item);
-  saveRecord("staff", item.id, item);
-  res.status(201).json(item);
+app.get("/staff", async (req, res) => {
+  const [rows] = await pool.query("SELECT * FROM staff");
+  res.json(rows);
 });
 
-app.put("/staff/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const existing = findById(staff, id);
-  if (!existing) return res.status(404).json({ error: "Not found" });
-  Object.assign(existing, req.body);
-  saveRecord("staff", id, existing);
-  res.json(existing);
+app.post("/staff", async (req, res) => {
+  const { name, role } = req.body;
+  const [info] = await pool.query(
+    "INSERT INTO staff (name,role) VALUES (?,?)",
+    [name, role]
+  );
+  const [item] = await pool.query("SELECT * FROM staff WHERE id = ?", [info.insertId]);
+  res.status(201).json(item[0]);
 });
 
-app.delete("/staff/:id", (req, res) => {
+app.put("/staff/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const idx = staff.findIndex((c) => c.id === id);
-  if (idx === -1) return res.status(404).json({ error: "Not found" });
-  staff.splice(idx, 1);
+  const { name, role } = req.body;
+  const [info] = await pool.query(
+    "UPDATE staff SET name=?, role=? WHERE id=?",
+    [name, role, id]
+  );
+  if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
+  const [updated] = await pool.query("SELECT * FROM staff WHERE id = ?", [id]);
+  res.json(updated[0]);
+});
+
+app.delete("/staff/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  const [info] = await pool.query("DELETE FROM staff WHERE id = ?", [id]);
+  if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
   res.json({ success: true });
 });
 
-app.listen(5000, () => console.log("Backend running on port 5000 with file saving enabled"));
+// ========== Measurements ==========
+app.get("/measurements", async (req, res) => {
+  const [rows] = await pool.query("SELECT * FROM measurements");
+  res.json(rows);
+});
+
+app.post("/measurements", async (req, res) => {
+  const { garment, chest, waist } = req.body;
+  const [info] = await pool.query(
+    "INSERT INTO measurements (garment,chest,waist) VALUES (?,?,?)",
+    [garment, chest, waist]
+  );
+  const [item] = await pool.query("SELECT * FROM measurements WHERE id = ?", [info.insertId]);
+  res.status(201).json(item[0]);
+});
+
+app.put("/measurements/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  const { garment, chest, waist } = req.body;
+  const [info] = await pool.query(
+    "UPDATE measurements SET garment=?, chest=?, waist=? WHERE id=?",
+    [garment, chest, waist, id]
+  );
+  if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
+  const [updated] = await pool.query("SELECT * FROM measurements WHERE id = ?", [id]);
+  res.json(updated[0]);
+});
+
+app.delete("/measurements/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  const [info] = await pool.query("DELETE FROM measurements WHERE id = ?", [id]);
+  if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
+  res.json({ success: true });
+});
+
+// ========== Tailor Section ==========
+app.get("/tailor/measurements", async (req, res) => {
+  const [rows] = await pool.query(
+    "SELECT m.*, c.name as customerName FROM measurements m LEFT JOIN customers c ON m.customerId = c.id ORDER BY m.createdAt DESC"
+  );
+  res.json(rows);
+});
+
+app.post("/tailor/measurements", async (req, res) => {
+  const { customerId, garmentType, garment, chest, waist, sleeve, length, price, notes } = req.body;
+  
+  if (!customerId || !garmentType || !price) {
+    return res.status(400).json({ message: "customerId, garmentType, and price are required" });
+  }
+
+  try {
+    const [info] = await pool.query(
+      "INSERT INTO measurements (customerId, garmentType, garment, chest, waist, sleeve, length, price, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
+      [customerId, garmentType, garment || null, chest || null, waist || null, sleeve || null, length || null, price, notes || null]
+    );
+
+    const [rows] = await pool.query(
+      "SELECT m.*, c.name as customerName FROM measurements m LEFT JOIN customers c ON m.customerId = c.id WHERE m.id = ?",
+      [info.insertId]
+    );
+    res.status(201).json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to add measurement" });
+  }
+});
+
+app.put("/tailor/measurements/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  const { garmentType, chest, waist, sleeve, length, price, notes } = req.body;
+
+  try {
+    const [info] = await pool.query(
+      "UPDATE measurements SET garmentType=?, chest=?, waist=?, sleeve=?, length=?, price=?, notes=? WHERE id=?",
+      [garmentType, chest, waist, sleeve, length, price, notes, id]
+    );
+    if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
+
+    const [rows] = await pool.query(
+      "SELECT m.*, c.name as customerName FROM measurements m LEFT JOIN customers c ON m.customerId = c.id WHERE m.id = ?",
+      [id]
+    );
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to update measurement" });
+  }
+});
+
+app.delete("/tailor/measurements/:id", async (req, res) => {
+  const id = Number(req.params.id);
+  try {
+    const [info] = await pool.query("DELETE FROM measurements WHERE id = ?", [id]);
+    if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
+    res.json({ success: true });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Failed to delete measurement" });
+  }
+});
+
+// start server after database initialized
+initDb()
+  .then(() => {
+    app.listen(5000, () => console.log("Backend running on port 5000 using MySQL database"));
+  })
+  .catch(err => {
+    console.error("Failed to initialize database", err);
+    process.exit(1);
+  });

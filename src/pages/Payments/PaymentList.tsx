@@ -42,6 +42,7 @@ import { useDispatch, useSelector } from "react-redux";
 import type { RootState } from "../../store";
 import { setPayments } from "../../slices/paymentSlice";
 import api from "../../api";
+import PaymentForm from "./PaymentForm";
 
 const PaymentList: React.FC = () => {
   const dispatch = useDispatch();
@@ -53,6 +54,7 @@ const PaymentList: React.FC = () => {
 
   return (
     <div className="p-6">
+      <PaymentForm />
       <h2 className="text-xl font-bold mb-4">Payments</h2>
       <table className="table-auto w-full border">
         <thead>

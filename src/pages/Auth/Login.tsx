@@ -52,6 +52,16 @@ const Login: React.FC = () => {
         <input type="password" placeholder="Password" value={password}
           onChange={(e)=>setPassword(e.target.value)} className="border p-2 w-full mb-2"/>
         <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Login</button>
+        <p className="mt-4 text-sm text-center">
+          Don't have an account?{' '}
+          <button
+            type="button"
+            onClick={() => navigate('/register')}
+            className="text-blue-600 underline"
+          >
+            Sign up
+          </button>
+        </p>
       </form>
     </div>
   );

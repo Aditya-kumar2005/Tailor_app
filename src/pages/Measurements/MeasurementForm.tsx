@@ -1,28 +1,43 @@
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import api from "../../api";
+import { addMeasurement } from "../../slices/measurementSlice";
+import  Form  from "../../components/Form";
 
 const MeasurementForm: React.FC = () => {
+  const dispatch = useDispatch();
   const [garment, setGarment] = useState("");
   const [chest, setChest] = useState("");
   const [waist, setWaist] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Call API: POST /measurements
-    console.log("New Measurement:", { garment, chest, waist });
+    try {
+      const resp = await api.post("/measurements", { garment, chest: Number(chest), waist: Number(waist) });
+      dispatch(addMeasurement(resp.data));
+      setGarment("");
+      setChest("");
+      setWaist("");
+      setError("");
+    } catch (err) {
+      setError("Failed to add measurement");
+      console.error(err);
+    }
   };
 
   return (
     <div className="p-6">
       <h2 className="text-xl font-bold mb-4">Add Measurement</h2>
-      <form onSubmit={handleSubmit}>
-        <input type="text" placeholder="Garment" value={garment}
-          onChange={(e)=>setGarment(e.target.value)} className="border p-2 w-full mb-2"/>
-        <input type="number" placeholder="Chest" value={chest}
-          onChange={(e)=>setChest(e.target.value)} className="border p-2 w-full mb-2"/>
-        <input type="number" placeholder="Waist" value={waist}
-          onChange={(e)=>setWaist(e.target.value)} className="border p-2 w-full mb-2"/>
-        <button type="submit" className="bg-green-600 text-white px-4 py-2 rounded">Save</button>
-      </form>
+      {error && <p className="text-red-500 mb-2">{error}</p>}
+      <Form
+      fields={[
+        { label: "Garment", type: "text", value:garment, onChange: e => setGarment(e.target.value) },
+        { label: "Chest", type: "number", value: chest, onChange: e => setChest(e.target.value) },
+        { label: "Waist", type: "number", value: waist, onChange: e => setWaist(e.target.value) }
+      ]}
+      onSubmit={handleSubmit}
+      />
     </div>
   );
 };

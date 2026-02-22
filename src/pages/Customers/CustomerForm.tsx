@@ -1,25 +1,47 @@
 import React, { useState } from "react";
+import { useDispatch } from "react-redux";
+import { Services } from "../../api";
+import { addCustomer } from "../../slices/customerSlice";
+import Form from "../../components/Form";
 
 const CustomerForm: React.FC = () => {
+  const dispatch = useDispatch();
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Call API: POST /customers
-    console.log("New Customer:", { name, phone });
+    if (!name.trim() || !phone.trim()) {
+      setError("Name and phone are required");
+      return;
+    }
+    try {
+      const resp = await Services.createCustomer({ name, phone, email });
+      dispatch(addCustomer(resp.data));
+      setName("");
+      setPhone("");
+      setEmail("");
+      setError("");
+    } catch (err) {
+      setError("Failed to create customer");
+      console.error(err);
+    }
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 text-center  ">
       <h2 className="text-xl font-bold mb-4">Add Customer</h2>
-      <form onSubmit={handleSubmit}>
-        <input type="text" placeholder="Name" value={name}
-          onChange={(e)=>setName(e.target.value)} className="border p-2 w-full mb-2"/>
-        <input type="text" placeholder="Phone" value={phone}
-          onChange={(e)=>setPhone(e.target.value)} className="border p-2 w-full mb-2"/>
-        <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded">Save</button>
-      </form>
+      {error && <p className="text-red-500 mb-2">{error}</p>}
+      <Form
+      fields={[
+        { label: "Name", type: "text", value: name, onChange: e => setName(e.target.value) },
+        { label: "Phone", type: "text", value: phone, onChange: e => setPhone(e.target.value) },
+        { label: "Email", type: "email", value: email, onChange: e => setEmail(e.target.value) }
+      ]}
+      onSubmit={handleSubmit}
+      />
     </div>
   );
 };
