@@ -13,12 +13,12 @@ let pool;
 
 async function initDb() {
   pool = await mysql.createPool({
-    host: 'localhost',
-    user: 'root',
-    password: 'Adity@25062005',      // change as appropriate
-    database: 'tailor',
+    host: HOSTNAME,
+    user: USERNAME,
+    password: PASSWORD,      // change as appropriate
+    database: DATABASE,
     waitForConnections: true,
-    connectionLimit: 10,
+    connectionLimit:CONNECTIONLIMIT,
     queueLimit: 0
   });
 

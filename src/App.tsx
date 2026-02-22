@@ -5,7 +5,11 @@ import { store } from "./store";
 import "./App.css"; // Import styles
 import Navbar from "./components/Navbar";
 import Login from "./pages/Auth/Login";
+import LoginStaff from "./pages/Auth/LoginStaff";
+import LoginAdmin from "./pages/Auth/LoginAdmin";
 import Register from "./pages/Auth/Register";
+import RegisterStaff from "./pages/Auth/RegisterStaff";
+import RegisterAdmin from "./pages/Auth/RegisterAdmin";
 import Dashboard from "./pages/Dashboard";
 import CustomerList from "./pages/Customers/CustomerList";
 import OrderList from "./pages/Orders/OrderList";
@@ -43,8 +47,10 @@ const App: React.FC = () => {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-
-
+        <Route path="/register-staff" element={<RegisterStaff />} />
+        <Route path="/register-admin" element={<RegisterAdmin />} />
+        <Route path="/login-staff" element={<LoginStaff />} />
+        <Route path="/login-admin" element={<LoginAdmin />} />
         {/* Admin-only routes */}
         <Route path="/customers" element={
           <ProtectedRoute allowedRoles={["Admin"]}>
@@ -91,11 +97,7 @@ const App: React.FC = () => {
           </ProtectedRoute>
         } />
 
-        <Route path="/tailor" element={
-          <ProtectedRoute allowedRoles={["Admin", "Staff", "Customer"]}>
-          <TailorDashboard />
-          </ProtectedRoute>
-          } />
+        {/* duplicate /tailor route removed */}
 
         <Route path="/reports/revenue" element={
           <ProtectedRoute allowedRoles={["Admin"]}>
