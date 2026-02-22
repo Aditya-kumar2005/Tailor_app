@@ -1,5 +1,5 @@
-// ...existing code...
 import axios from "axios";
+
 
 const api = axios.create({
   baseURL: "http://localhost:5000", // backend REST API (root)
@@ -7,6 +7,16 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+// attach JWT token from localStorage to every request
+api.interceptors.request.use(config => {
+  const token = localStorage.getItem('token');
+  if (token && config.headers) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
 
 export const Services = {
     // customer routes
@@ -48,5 +58,6 @@ export const Services = {
     deleteMeasurement: (id:number) => api.delete(`/measurements/${id}`),
   };
 
+
+
 export default api;
-// ...existing code...

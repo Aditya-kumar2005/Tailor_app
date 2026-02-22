@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import api from "../../api";
 import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { login } from "../../slices/userSlice";
 
 const Register: React.FC = () => {
   const [name, setName] = useState("");
@@ -10,12 +12,16 @@ const Register: React.FC = () => {
   const [error, setError] = useState("");
   const navigate = useNavigate();
 
+  const dispatch = useDispatch();
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
     try {
-      await api.post("/auth/register", { name, email, password, role });
-      navigate("/login");
+      const res = await api.post("/auth/register", { name, email, password, role });
+      const { user, token } = res.data;
+      localStorage.setItem('token', token);
+      dispatch(login({ profile: user, token }));
+      navigate("/dashboard");
     } catch (err) {
       const message = (err as any)?.response?.data?.error || "Registration failed";
       setError(message);

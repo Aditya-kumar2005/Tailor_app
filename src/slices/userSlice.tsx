@@ -9,6 +9,7 @@ interface UserProfile {
 interface UserState {
   loggedIn: boolean;
   profile: UserProfile | null;
+  token: string | null;
 }
 
 // try to restore user from localStorage so login survives reloads
@@ -21,7 +22,7 @@ function loadInitialState(): UserState {
   } catch {
     // ignore parse errors
   }
-  return { loggedIn: false, profile: null };
+  return { loggedIn: false, profile: null, token: null };
 }
 
 const initialState: UserState = loadInitialState();
@@ -30,21 +31,25 @@ const userSlice = createSlice({
   name: "user",
   initialState,
   reducers: {
-    login: (state, action: PayloadAction<UserProfile>) => {
+    login: (state, action: PayloadAction<{profile: UserProfile; token: string}>) => {
       state.loggedIn = true;
-      state.profile = action.payload;
+      state.profile = action.payload.profile;
+      state.token = action.payload.token;
       // persist
       try {
         localStorage.setItem("userState", JSON.stringify(state));
+        localStorage.setItem("token", action.payload.token);
       } catch {
-        // ignore storage failures (e.g. quota exceeded or SSR)
+        // ignore storage failures
       }
     },
     logout: (state) => {
       state.loggedIn = false;
       state.profile = null;
+      state.token = null;
       try {
         localStorage.removeItem("userState");
+        localStorage.removeItem("token");
       } catch {
         // ignore failures
       }

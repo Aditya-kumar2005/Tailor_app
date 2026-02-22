@@ -1,5 +1,7 @@
 // import dotenv from "./"
-
+require('dotenv').config();
+const jwt       = require('jsonwebtoken');
+const bcrypt    = require('bcrypt');
 const express = require("express");
 const fs = require("fs");
 const cors = require("cors");
@@ -51,19 +53,59 @@ app.use(express.json());
 
 // no longer using in-memory arrays or file storage
 
+// helper – create a signed JWT
+function signToken(user) {
+  // keep only the data you need on the client
+  const payload = { id: user.id, role: user.role, email: user.email };
+  return jwt.sign(payload, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || '1h'
+  });
+}
+
+// verify that Authorization header has a valid Bearer token
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return res.status(401).json({ error: 'No token' });
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, payload) => {
+    if (err) return res.status(403).json({ error: 'Invalid token' });
+    req.user = payload;              // available to later handlers
+    next();
+  });
+}
+
+// optional helper to allow by role
+function authorizeRoles(...allowedRoles) {
+  return (req, res, next) => {
+    if (!req.user) return res.status(401).json({ error: 'Unauthenticated' });
+    if (!allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    next();
+  };
+}
+
 // ========== Authentication ==========
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
   const [rows] = await pool.query(
-    "SELECT id, email, role FROM users WHERE email = ? AND password = ?",
-    [email, password]
+    "SELECT id, email, role, password FROM users WHERE email = ?",
+    [email]
   );
   const user = rows[0];
   if (!user) return res.status(401).json({ error: "Invalid credentials" });
-  res.json(user);
+
+  const ok = await bcrypt.compare(password, user.password);
+  if (!ok) return res.status(401).json({ error: "Invalid credentials" });
+
+  // remove hashed password before sending
+  delete user.password;
+  const token = signToken(user);
+  res.json({ user, token });
 });
 
-// basic registration support
+/* basic registration support */
 app.post("/auth/register", async (req, res) => {
   const { name, email, password, role = "Customer" } = req.body;
   if (!email || !password) {
@@ -73,12 +115,16 @@ app.post("/auth/register", async (req, res) => {
   if (exists.length) {
     return res.status(400).json({ error: "Email already in use" });
   }
+  // hash the password before storing
+  const hashed = await bcrypt.hash(password, 10);
   const [info] = await pool.query(
     "INSERT INTO users (name,email,password,role) VALUES (?,?,?,?)",
-    [name || null, email, password, role]
+    [name || null, email, hashed, role]
   );
-  const [user] = await pool.query("SELECT id,name,email,role FROM users WHERE id = ?", [info.insertId]);
-  res.status(201).json(user[0]);
+  const [userRow] = await pool.query("SELECT id,name,email,role FROM users WHERE id = ?", [info.insertId]);
+  const user = userRow[0];
+  const token = signToken(user);
+  res.status(201).json({ user, token });
 });
 
 // forgot password stub
@@ -88,7 +134,7 @@ app.post("/auth/forgot-password", (req, res) => {
 });
 
 // ========== Customers ==========
-app.get("/customers", async (req, res) => {
+app.get("/customers", authenticateToken, async (req, res) => {
   const [rows] = await pool.query("SELECT * FROM customers");
   res.json(rows);
 });
@@ -150,12 +196,16 @@ app.put("/orders/:id", async (req, res) => {
   res.json(updated[0]);
 });
 
-app.delete("/orders/:id", async (req, res) => {
-  const id = Number(req.params.id);
-  const [info] = await pool.query("DELETE FROM orders WHERE id = ?", [id]);
-  if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
-  res.json({ success: true });
-});
+app.delete("/orders/:id",
+    authenticateToken,
+    authorizeRoles('Admin'),
+    async (req, res) => {
+        const id = Number(req.params.id);
+        const [info] = await pool.query("DELETE FROM orders WHERE id = ?", [id]);
+        if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
+        res.json({ success: true });
+    }
+);
 
 // ========== Inventory ==========
 app.get("/inventory", async (req, res) => {
@@ -233,7 +283,7 @@ app.get("/staff", async (req, res) => {
   res.json(rows);
 });
 
-app.post("/staff", async (req, res) => {
+app.post("/staff", authenticateToken, authorizeRoles('Admin','Manager'), async (req, res) => {
   const { name, role } = req.body;
   const [info] = await pool.query(
     "INSERT INTO staff (name,role) VALUES (?,?)",
@@ -372,3 +422,4 @@ initDb()
     console.error("Failed to initialize database", err);
     process.exit(1);
   });
+

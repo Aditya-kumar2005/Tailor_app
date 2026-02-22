@@ -5,6 +5,7 @@ import { store } from "./store";
 import "./App.css"; // Import styles
 import Navbar from "./components/Navbar";
 import Login from "./pages/Auth/Login";
+import Register from "./pages/Auth/Register";
 import Dashboard from "./pages/Dashboard";
 import CustomerList from "./pages/Customers/CustomerList";
 import OrderList from "./pages/Orders/OrderList";
@@ -41,6 +42,8 @@ const App: React.FC = () => {
         {/* redirect base path to login for unauthenticated users */}
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+
 
         {/* Admin-only routes */}
         <Route path="/customers" element={

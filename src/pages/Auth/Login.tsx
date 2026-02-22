@@ -33,7 +33,10 @@ const Login: React.FC = () => {
 
     try {
       const res = await api.post("/login", { email, password });
-      dispatch(login(res.data));
+      const { user, token } = res.data;
+      // save token separately for axios interceptor
+      localStorage.setItem('token', token);
+      dispatch(login({ profile: user, token }));
       navigate("/dashboard");
     } catch (err) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
