@@ -32,7 +32,6 @@ const StaffForm: React.FC = () => {
       fields={[
         { label: "Name", type: "text", value: name, onChange: e => setName(e.target.value) },
         { label: "Role", type: "text", value: role, onChange: e => setRole(e.target.value) },
-        // { label: "Email", type: "email", value: email, onChange: e => setEmail(e.target.value) }
       ]}
       onSubmit={handleSubmit}
       />

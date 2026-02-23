@@ -47,11 +47,19 @@ const App: React.FC = () => {
         <Route path="/" element={<Login />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/register-staff" element={<RegisterStaff />} />
-        <Route path="/register-admin" element={<RegisterAdmin />} />
-        <Route path="/login-staff" element={<LoginStaff />} />
-        <Route path="/login-admin" element={<LoginAdmin />} />
         {/* Admin-only routes */}
+        <Route path="/register-admin" element={
+          <ProtectedRoute allowedRoles={["Admin"]}>
+            <RegisterAdmin />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/login-admin" element={
+          <ProtectedRoute allowedRoles={["Admin"]}>
+            <LoginAdmin />
+          </ProtectedRoute>
+        } />
+
         <Route path="/customers" element={
           <ProtectedRoute allowedRoles={["Admin"]}>
             <CustomerList />
@@ -65,6 +73,19 @@ const App: React.FC = () => {
         } />
 
         {/* Staff routes */}
+          <Route path="/login-staff" element={
+          <ProtectedRoute allowedRoles={["Admin", "Staff"]}>
+            <LoginStaff />
+          </ProtectedRoute>
+        } />
+
+        <Route path="/register-staff" element={
+          <ProtectedRoute allowedRoles={["Admin", "Staff"]}>
+            <RegisterStaff/>
+          </ProtectedRoute>
+        } />
+        
+
         <Route path="/orders" element={
           <ProtectedRoute allowedRoles={["Admin", "Staff"]}>
             <OrderList />
@@ -96,7 +117,11 @@ const App: React.FC = () => {
             <Dashboard />
           </ProtectedRoute>
         } />
-
+        <Route path="/tailor" element={
+          <ProtectedRoute allowedRoles={["Admin", "Staff", "Customer"]}>
+            <TailorDashboard/>
+          </ProtectedRoute>
+        } />
         {/* duplicate /tailor route removed */}
 
         <Route path="/reports/revenue" element={

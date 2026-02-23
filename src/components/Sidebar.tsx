@@ -14,12 +14,16 @@ const Sidebar: React.FC = () => {
         <Link to="/dashboard"  className="hover:underline ">Dashboard</Link>
       </li>
       <hr/>
+      <li>
+        <Link to="/tailor" className="hover:underline">TailorDashboard</Link>
+      </li>
+      <hr/>
 
       {/* Admin-only links */}
       {role === "Admin" && (
           <>
           <li><Link to="/customers" className="hover:underline ">Customers</Link></li>
-          <hr/>
+          <hr />
           <li><Link to="/staff" className="hover:underline ">Staff</Link></li>
           <hr/>
           <li><Link to="/reports/revenue" className="hover:underline ">Reports</Link></li>

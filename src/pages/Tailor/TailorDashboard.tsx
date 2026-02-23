@@ -33,7 +33,7 @@ const TailorDashboard: React.FC = () => {
     setLoading(true);
     setError("");
     // fetch tailor-specific measurements which include customerName, price, garmentType
-    api.get("/tailor/measurements")
+    api.get("/measurements")
       .then(res => {
         if (Array.isArray(res.data)) {
           dispatch(setMeasurements(res.data));

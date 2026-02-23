@@ -4,6 +4,7 @@ import type { RootState } from "../../store";
 import { setInventory } from "../../slices/inventorySlice";
 import api from "../../api";
 import InventoryForm from "./InventoryForm";
+import Table from "../../components/Table";
 
 const InventoryList: React.FC = () => {
   const dispatch = useDispatch();
@@ -16,17 +17,11 @@ const InventoryList: React.FC = () => {
   return (
     <div className="p-6">
       <InventoryForm />
-      <h2 className="text-xl font-bold mb-4">Inventory</h2>
-      <table className="table-auto w-full border">
-        <thead>
-          <tr className="bg-gray-200"><th>Name</th><th>Type</th><th>Stock</th></tr>
-        </thead>
-        <tbody>
-          {items.map(i => (
-            <tr key={i.id}><td>{i.name}</td><td>{i.type}</td><td>{i.stock}</td></tr>
-          ))}
-        </tbody>
-      </table>
+      <Table
+        Name="Inventory"
+        headers={["Name", "Type", "Stock"]}
+        data={items.map(item => [item.name ?? "", item.type ?? "", item.stock ?? ""])}
+      />
     </div>
   );
 };

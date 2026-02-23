@@ -16,6 +16,7 @@ const Navbar: React.FC = () => {
       <div className="space-x-4">
         {/* Shared links */}
         <Link to="/dashboard" className="hover:underline">Dashboard</Link>
+        <Link to="/tailor" className="hover:underline">TailorDashboard</Link>
 
         {/* Admin-only links */}
         {role === "Admin" && (

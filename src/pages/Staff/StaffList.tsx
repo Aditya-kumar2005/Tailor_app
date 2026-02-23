@@ -4,6 +4,7 @@ import type { RootState } from "../../store";
 import { setStaff } from "../../slices/staffSlice";
 import api from "../../api";
 import StaffForm from "./StaffForm";
+import Table from "../../components/Table";
 
 const StaffList: React.FC = () => {
   const dispatch = useDispatch();
@@ -16,17 +17,11 @@ const StaffList: React.FC = () => {
   return (
     <div className="p-6">
       <StaffForm />
-      <h2 className="text-xl font-bold mb-4">Staff</h2>
-      <table className="table-auto w-full border">
-        <thead>
-          <tr className="bg-gray-200"><th>Name</th><th>Role</th></tr>
-        </thead>
-        <tbody>
-          {staff.map(s => (
-            <tr key={s.id}><td>{s.name}</td><td>{s.role}</td></tr>
-          ))}
-        </tbody>
-      </table>
+      <Table
+        Name="Staff"
+        headers={["Name", "Role"]}
+        data={staff.map(c => [c.name ?? "", c.role ?? ""])}
+      />
     </div>
   );
 };

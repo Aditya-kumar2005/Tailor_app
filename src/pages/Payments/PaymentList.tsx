@@ -43,6 +43,7 @@ import type { RootState } from "../../store";
 import { setPayments } from "../../slices/paymentSlice";
 import api from "../../api";
 import PaymentForm from "./PaymentForm";
+import Table from "../../components/Table";
 
 const PaymentList: React.FC = () => {
   const dispatch = useDispatch();
@@ -55,23 +56,11 @@ const PaymentList: React.FC = () => {
   return (
     <div className="p-6">
       <PaymentForm />
-      <h2 className="text-xl font-bold mb-4">Payments</h2>
-      <table className="table-auto w-full border">
-        <thead>
-          <tr className="bg-gray-200"><th>Order ID</th><th>Amount</th><th>Status</th><th>Method</th><th>Date</th></tr>
-        </thead>
-        <tbody>
-          {payments.map(p => (
-            <tr key={p.id}>
-              <td>{p.orderId}</td>
-              <td>{p.amount}</td>
-              <td>{p.status}</td>
-              <td>{p.method}</td>
-              <td>{p.date}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <Table
+        Name="Payments"
+        headers={["Order ID", "Amounts", "Status","Payment mode","Date"]}
+        data={payments.map(c => [c.id ?? "", c.amount ?? "", c.status ?? "",c.method ?? "",c.date?? ""])}
+      />
     </div>
   );
 };

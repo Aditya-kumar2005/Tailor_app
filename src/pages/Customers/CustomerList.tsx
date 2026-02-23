@@ -18,8 +18,8 @@ const CustomerList: React.FC = () => {
   return (
     <div className="p-6">
       <CustomerForm/>
-      <h2 className="text-xl font-bold mb-4">Customers</h2>
       <Table
+        Name="Customers"
         headers={["Name", "Phone", "Email"]}
         data={customers.map(c => [c.name ?? "", c.phone ?? "", c.email ?? ""])}
       />

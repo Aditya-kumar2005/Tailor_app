@@ -39,6 +39,7 @@ import type { RootState } from "../../store";
 import { setOrders } from "../../slices/orderSlice";
 import api from "../../api";
 import OrderForm from "./OrderForm";
+import Table from "../../components/Table";
 
 const OrderList: React.FC = () => {
   const dispatch = useDispatch();
@@ -51,17 +52,11 @@ const OrderList: React.FC = () => {
   return (
     <div className="p-6">
       <OrderForm />
-      <h2 className="text-xl font-bold mb-4">Orders</h2>
-      <table className="table-auto w-full border">
-        <thead>
-          <tr className="bg-gray-200"><th>Garment</th><th>Status</th><th>Delivery Date</th></tr>
-        </thead>
-        <tbody>
-          {orders.map(o => (
-            <tr key={o.id}><td>{o.garment}</td><td>{o.status}</td><td>{o.deliveryDate}</td></tr>
-          ))}
-        </tbody>
-      </table>
+      <Table
+        Name="Orders"
+        headers={["Order ID", "Garments", "Status"]}
+        data={orders.map(c => [c.id ?? "", c.garment ?? "", c.status ?? ""])}
+      />
     </div>
   );
 };
