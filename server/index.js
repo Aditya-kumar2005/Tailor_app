@@ -461,6 +461,9 @@ app.delete("/measurements/:id", async (req, res) => {
 // start server after database initialized
 initDb()
   .then(() => {
+    app.use("/",(req,res)=>{
+      res.send("<h2>server is running </h2>");
+    });
     app.listen(5000, () => console.log("Backend running on port 5000 using MySQL database"));
   })
   .catch(err => {
