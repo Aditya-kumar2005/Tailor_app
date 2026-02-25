@@ -2,6 +2,7 @@ import { createSlice} from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
 interface UserProfile {
+  name: string;
   email: string;
   role: "Admin" | "Staff" | "Customer";
 }
@@ -17,7 +18,9 @@ function loadInitialState(): UserState {
   try {
     const json = localStorage.getItem("userState");
     if (json) {
-      return JSON.parse(json);
+      const savedState = JSON.parse(json);
+      // Don't automatically log in, just restore the user info
+      return { ...savedState, loggedIn: false }; 
     }
   } catch {
     // ignore parse errors

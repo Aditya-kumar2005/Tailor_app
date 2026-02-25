@@ -1,55 +1,51 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store";
+import { navLinks} from "../data/navLinks";
+import type { Role } from "../data/navLinks"; // Import the centralized links
 
 const Sidebar: React.FC = () => {
   const user = useSelector((state: RootState) => state.user);
-  const role = user.profile?.role;
-  return(
-    <aside className="w-64 h-svh bg-black pt-2.5 text-xl text-center">
-    <ul className="space-y-4">
-      {/* Shared links */}
-      <li>
-        <Link to="/dashboard"  className="hover:underline ">Dashboard</Link>
-      </li>
-      <hr/>
-      <li>
-        <Link to="/tailor" className="hover:underline">TailorDashboard</Link>
-      </li>
-      <hr/>
+  const userRole = user.profile?.role as Role;
 
-      {/* Admin-only links */}
-      {role === "Admin" && (
-          <>
-          <li><Link to="/customers" className="hover:underline ">Customers</Link></li>
-          <hr />
-          <li><Link to="/staff" className="hover:underline ">Staff</Link></li>
-          <hr/>
-          <li><Link to="/reports/revenue" className="hover:underline ">Reports</Link></li>
-          <hr/>
-        </>
-      )}
+  // Filter links based on user's role
+  const accessibleLinks = navLinks.filter(link => 
+    user.loggedIn && link.allowedRoles.includes(userRole)
+  );
 
-      {/* Admin + Staff links */}
+  // Define the class names for active and inactive links
+  const linkClassName = ({ isActive }: { isActive: boolean }) =>
+    `flex items-center px-4 py-3 text-lg font-medium rounded-lg transition-colors duration-200 ${ 
+      isActive 
+      ? 'bg-blue-600 text-white shadow-lg' 
+      : 'text-gray-300 hover:bg-gray-700 hover:text-white'
+    }`;
 
-      {(role === "Admin" || role === "Staff") && (
-        <>
-          <li><Link to="/orders" className="hover:underline ">Orders</Link></li>
-          <hr/>
-          <li><Link to="/inventory" className="hover:underline ">Inventory</Link></li>
-          <hr/>
-                  
-        </>
-      )}
+  return (
+    <aside className="w-64 h-full bg-gray-800 text-white p-4 flex flex-col">
+      <div className="flex items-center mb-8">
+        {/* You can place a logo here if you have one */}
+        <h1 className="text-2xl font-bold text-white">Menu</h1>
+      </div>
       
-      {/* Admin + Customer links */}
+      <nav className="flex-grow">
+        <ul className="space-y-2">
+          {accessibleLinks.map(link => (
+            <li key={link.path}>
+              <NavLink to={link.path} className={linkClassName}>
+                <link.icon />
+                <span className="ml-3">{link.label}</span>
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
-      {(role === "Admin" || role === "Customer") && (
-          <li><Link to="/payments" className="hover:underline ">Payments</Link></li>
-      )}
-    </ul>
-  </aside>
+      <div className="mt-auto text-center text-gray-400 text-sm">
+        <p>&copy; {new Date().getFullYear()} TailorFlow</p>
+      </div>
+    </aside>
   );
 };
 

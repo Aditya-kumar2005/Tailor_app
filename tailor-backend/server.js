@@ -35,33 +35,48 @@ async function initDb() {
   });
 
   // execute schema file if exists
-  const schemaPath = path.join(__dirname, 'schema_mysql.sql');
-  if (fs.existsSync(schemaPath)) {
-    const sql = fs.readFileSync(schemaPath, 'utf-8');
-    const statements = sql.split(/;\s*\n/).map(s=>s.trim()).filter(Boolean);
-    for (const stmt of statements) {
-      await pool.query(stmt);
-    }
-  } else {
-    console.warn('schema_mysql.sql not found, database schema may be missing');
-  }
+  // const schemaPath = path.join(__dirname, 'schema_mysql.sql');
+  // if (fs.existsSync(schemaPath)) {
+  //   const sql = fs.readFileSync(schemaPath, 'utf-8');
+  //   const statements = sql.split(/;\s*\n/).map(s=>s.trim()).filter(Boolean);
+  //   for (const stmt of statements) {
+  //     await pool.query(stmt);
+  //   }
+  // } else {
+  //   console.warn('schema_mysql.sql not found, database schema may be missing');
+  // }
 
-  // ensure users table has name column (in case it existed before schema update)
-  try {
-    // check if the column already exists to avoid syntax errors on older MySQL
-    const [cols] = await pool.query("SHOW COLUMNS FROM users LIKE 'name'");
-    if (cols.length === 0) {
-      await pool.query("ALTER TABLE users ADD COLUMN name VARCHAR(255)");
-    }
-  } catch (e) {
-    // if something goes wrong, log but don't crash
-    console.warn('Could not verify/add name column in users table', e.message);
-  }
+  // // ensure users table has name column (in case it existed before schema update)
+  // try {
+  //   // check if the column already exists to avoid syntax errors on older MySQL
+  //   const [cols] = await pool.query("SHOW COLUMNS FROM users LIKE 'name'");
+  //   if (cols.length === 0) {
+  //     await pool.query("ALTER TABLE users ADD COLUMN name VARCHAR(255)");
+  //   }
+  // } catch (e) {
+  //   // if something goes wrong, log but don't crash
+  //   console.warn('Could not verify/add name column in users table', e.message);
+  // }
 }
-
 const app = express();
 app.use(cors());
 app.use(express.json());
+// const allowedOrigins = ['https://5173-firebase-tailorappgit-1771855280716.cluster-bg6uurscprhn6qxr6xwtrhvkf6.cloudworkstations.dev'];
+
+// const corsOptions = {
+//   origin: function (origin, callback) {
+//     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error('Not allowed by CORS'));
+//     }
+//   }
+// };
+
+// Use the CORS middleware
+// app.use(cors(corsOptions));
+
+
 
 // no longer using in-memory arrays or file storage
 
@@ -181,42 +196,95 @@ app.delete("/customers/:id", async (req, res) => {
 });
 
 // ========== Orders ==========
+
+
+app.get("/orders", async (req, res) => {
+  const [orders] = await pool.query("SELECT * FROM orders ORDER BY id DESC");
+
+  for (const order of orders) {
+    const [items] = await pool.query(
+      "SELECT id,name,quantity,price FROM order_items WHERE orderId=?",
+      [order.id]
+    );
+    order.items = items;
+    order.totalAmount = Number(order.totalAmount);
+  }
+
+  res.json(orders);
+});
+
+
 app.get("/orders", async (req, res) => {
   const [rows] = await pool.query("SELECT * FROM orders");
   res.json(rows);
 });
 
-app.post("/orders", async (req, res) => {
-  const { garment, status, deliveryDate } = req.body;
-  const [info] = await pool.query(
-    "INSERT INTO orders (garment,status,deliveryDate) VALUES (?,?,?)",
-    [garment, status, deliveryDate]
-  );
-  const [item] = await pool.query("SELECT * FROM orders WHERE id = ?", [info.insertId]);
-  res.status(201).json(item[0]);
-});
-
-app.put("/orders/:id", async (req, res) => {
+app.get("/orders/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const { garment, status, deliveryDate } = req.body;
-  const [info] = await pool.query(
-    "UPDATE orders SET garment=?, status=?, deliveryDate=? WHERE id=?",
-    [garment, status, deliveryDate, id]
+
+  const [orders] = await pool.query("SELECT * FROM orders WHERE id=?", [id]);
+  if (!orders.length) return res.status(404).json({ error: "Not found" });
+
+  const [items] = await pool.query(
+    "SELECT id,name,quantity,price FROM order_items WHERE orderId=?",
+    [id]
   );
-  if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
-  const [updated] = await pool.query("SELECT * FROM orders WHERE id = ?", [id]);
-  res.json(updated[0]);
+
+  orders[0].items = items;
+  orders[0].totalAmount = Number(orders[0].totalAmount);
+
+  res.json(orders[0]);
 });
 
-app.delete("/orders/:id",
-    authenticateToken,
-    authorizeRoles('Admin'),
-    async (req, res) => {
-        const id = Number(req.params.id);
-        const [info] = await pool.query("DELETE FROM orders WHERE id = ?", [id]);
-        if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
-        res.json({ success: true });
+app.post("/orders", async (req, res) => {
+  const { customerName, orderDate, status, items } = req.body;
+
+  if (!customerName || !orderDate || !items?.length) {
+    return res.status(400).json({ error: "Invalid order data" });
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    const totalAmount = items.reduce(
+      (sum, i) => sum + Number(i.price) * Number(i.quantity),
+      0
+    );
+
+    const [order] = await conn.query(
+      "INSERT INTO orders (customerName,orderDate,totalAmount,status) VALUES (?,?,?,?)",
+      [customerName, orderDate, totalAmount, status]
+    );
+
+    for (const item of items) {
+      await conn.query(
+        "INSERT INTO order_items (orderId,name,quantity,price) VALUES (?,?,?,?)",
+        [order.insertId, item.name, item.quantity, item.price]
+      );
     }
+
+    await conn.commit();
+    res.status(201).json({ id: order.insertId });
+  } catch (e) {
+    await conn.rollback();
+    res.status(500).json({ error: "Failed to create order" });
+  } finally {
+    conn.release();
+  }
+});
+
+app.delete(
+  "/orders/:id",
+  authenticateToken,
+  authorizeRoles("Admin"),
+  async (req, res) => {
+    const [info] = await pool.query("DELETE FROM orders WHERE id=?", [
+      req.params.id,
+    ]);
+    if (!info.affectedRows) return res.status(404).json({ error: "Not found" });
+    res.json({ success: true });
+  }
 );
 
 // ========== Inventory ==========
@@ -324,50 +392,15 @@ app.delete("/staff/:id", async (req, res) => {
   res.json({ success: true });
 });
 
-// ========== Measurements ==========
-app.get("/measurements", async (req, res) => {
-  const [rows] = await pool.query("SELECT * FROM measurements");
-  res.json(rows);
-});
-
-app.post("/measurements", async (req, res) => {
-  const { garment, chest, waist } = req.body;
-  const [info] = await pool.query(
-    "INSERT INTO measurements (garment,chest,waist) VALUES (?,?,?)",
-    [garment, chest, waist]
-  );
-  const [item] = await pool.query("SELECT * FROM measurements WHERE id = ?", [info.insertId]);
-  res.status(201).json(item[0]);
-});
-
-app.put("/measurements/:id", async (req, res) => {
-  const id = Number(req.params.id);
-  const { garment, chest, waist } = req.body;
-  const [info] = await pool.query(
-    "UPDATE measurements SET garment=?, chest=?, waist=? WHERE id=?",
-    [garment, chest, waist, id]
-  );
-  if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
-  const [updated] = await pool.query("SELECT * FROM measurements WHERE id = ?", [id]);
-  res.json(updated[0]);
-});
-
-app.delete("/measurements/:id", async (req, res) => {
-  const id = Number(req.params.id);
-  const [info] = await pool.query("DELETE FROM measurements WHERE id = ?", [id]);
-  if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
-  res.json({ success: true });
-});
-
 // ========== Tailor Section ==========
-app.get("/tailor/measurements", async (req, res) => {
+app.get("/measurements", async (req, res) => {
   const [rows] = await pool.query(
     "SELECT m.*, c.name as customerName FROM measurements m LEFT JOIN customers c ON m.customerId = c.id ORDER BY m.createdAt DESC"
   );
   res.json(rows);
 });
 
-app.post("/tailor/measurements", async (req, res) => {
+app.post("/measurements", async (req, res) => {
   const { customerId, garmentType, garment, chest, waist, sleeve, length, price, notes } = req.body;
   
   if (!customerId || !garmentType || !price) {
@@ -391,7 +424,7 @@ app.post("/tailor/measurements", async (req, res) => {
   }
 });
 
-app.put("/tailor/measurements/:id", async (req, res) => {
+app.put("/measurements/:id", async (req, res) => {
   const id = Number(req.params.id);
   const { garmentType, chest, waist, sleeve, length, price, notes } = req.body;
 
@@ -413,7 +446,7 @@ app.put("/tailor/measurements/:id", async (req, res) => {
   }
 });
 
-app.delete("/tailor/measurements/:id", async (req, res) => {
+app.delete("/measurements/:id", async (req, res) => {
   const id = Number(req.params.id);
   try {
     const [info] = await pool.query("DELETE FROM measurements WHERE id = ?", [id]);

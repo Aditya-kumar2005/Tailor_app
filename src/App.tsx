@@ -1,144 +1,95 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./store";
-import "./App.css"; // Import styles
+
+// --- Layout and Authentication ---
 import Navbar from "./components/Navbar";
+import Sidebar from "./components/Sidebar";
+import ProtectedRoute from "./components/ProtectedRoute";
+
+// --- Page Components ---
+// Auth
 import Login from "./pages/Auth/Login";
-import LoginStaff from "./pages/Auth/LoginStaff";
-import LoginAdmin from "./pages/Auth/LoginAdmin";
 import Register from "./pages/Auth/Register";
-import RegisterStaff from "./pages/Auth/RegisterStaff";
-import RegisterAdmin from "./pages/Auth/RegisterAdmin";
+import ForgotPassword from "./pages/Auth/ForgotPassword";
+
+// Main App
 import Dashboard from "./pages/Dashboard";
 import CustomerList from "./pages/Customers/CustomerList";
+import StaffList from "./pages/Staff/StaffList";
 import OrderList from "./pages/Orders/OrderList";
 import InventoryList from "./pages/Inventory/InventoryList";
-import StaffList from "./pages/Staff/StaffList";
 import PaymentList from "./pages/Payments/PaymentList";
+// import TailorDashboard from "./pages/Tailor/TailorDashboard";
+
+// Reports
+import ReportDashboard from "./pages/Reports/ReportDashboard";
 import RevenueReport from "./pages/Reports/RevenueReport";
-import TailorDashboard from "./pages/Tailor/TailorDashboard";
-import ProtectedRoute from "./components/ProtectedRoute";
-import Sidebar from "./components/Sidebar";
-import { useState } from "react";
-import StaffReport from "./pages/Reports/StaffReport";
-import CustomerReport from "./pages/Reports/CustomerReport";
 import OrderReport from "./pages/Reports/OrderReport";
+import CustomerReport from "./pages/Reports/CustomerReport";
+import StaffReport from "./pages/Reports/StaffReport";
+
+// Settings
+import Settings from "./pages/Settings/Settings";
+import ProfileSettings from "./pages/Settings/ProfileSettings";
+import SystemSettings from "./pages/Settings/SystemSettings";
+import TailorList from "./pages/Tailor/TailorList";
+
+const MainLayout: React.FC = () => {
+  return (
+    <div className="flex h-screen bg-red-100 ">
+      <Sidebar />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Navbar />
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 pt-16">
+          <div className="container mx-auto px-6 py-8">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+};
 
 const App: React.FC = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const toggleSidebar = () => {
-    setIsOpen((prev) => !prev);
-  };
   return (
     <Provider store={store}>
-    <Router>
-      <Navbar />
-      <div className="app-container">
-        <div className={`sidebar ${isOpen ? "open" : ""}`}>
-          <Sidebar/>
-          </div>
-        <div className="content">
-        <Link to="" className="toggle-btn" onClick={toggleSidebar}>
-        {isOpen ? "<-" : "->"}
-        </Link>
-      <Routes>
-        {/* redirect base path to login for unauthenticated users */}
-        <Route path="/" element={<Login />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        {/* Admin-only routes */}
-        <Route path="/register-admin" element={
-          <ProtectedRoute allowedRoles={["Admin"]}>
-            <RegisterAdmin />
-          </ProtectedRoute>
-        } />
+      <Router>
+        <Routes>
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
 
-        <Route path="/login-admin" element={
-          <ProtectedRoute allowedRoles={["Admin"]}>
-            <LoginAdmin />
-          </ProtectedRoute>
-        } />
+          <Route element={<MainLayout />}>
+            <Route path="/dashboard" element={<ProtectedRoute allowedRoles={["Admin", "Staff", "Customer"]}><Dashboard /></ProtectedRoute>} />
+            <Route path="/customers" element={<ProtectedRoute allowedRoles={["Admin"]}><CustomerList /></ProtectedRoute>} />
+            <Route path="/staff" element={<ProtectedRoute allowedRoles={["Admin"]}><StaffList /></ProtectedRoute>} />
+            <Route path="/orders" element={<ProtectedRoute allowedRoles={["Admin", "Staff"]}><OrderList /></ProtectedRoute>} />
+            <Route path="/inventory" element={<ProtectedRoute allowedRoles={["Admin", "Staff"]}><InventoryList /></ProtectedRoute>} />
+            <Route path="/tailor" element={<ProtectedRoute allowedRoles={["Admin", "Staff"]}><TailorList /></ProtectedRoute>} />
+            {/* <Route path="/tailor" element={<ProtectedRoute allowedRoles={["Admin", "Staff"]}><TailorDashboard /></ProtectedRoute>} /> */}
+            <Route path="/payments" element={<ProtectedRoute allowedRoles={["Admin", "Customer"]}><PaymentList /></ProtectedRoute>} />
+            
+            <Route path="/reports" element={<ProtectedRoute allowedRoles={["Admin"]}><ReportDashboard /></ProtectedRoute>}>
+              <Route path="revenue" element={<RevenueReport />} />
+              <Route path="order" element={<OrderReport />} />
+              <Route path="customer" element={<CustomerReport />} />
+              <Route path="staff" element={<StaffReport />} />
+            </Route>
 
-        <Route path="/customers" element={
-          <ProtectedRoute allowedRoles={["Admin"]}>
-            <CustomerList />
-          </ProtectedRoute>
-        } />
+            <Route path="/settings" element={<ProtectedRoute allowedRoles={["Admin", "Staff", "Customer"]}><Settings /></ProtectedRoute>}>
+              <Route index element={<Navigate to="profile" replace />} />
+              <Route path="profile" element={<ProfileSettings />} />
+              <Route path="system" element={<ProtectedRoute allowedRoles={["Admin"]}><SystemSettings /></ProtectedRoute>} />
+            </Route>
+          </Route>
 
-        <Route path="/staff" element={
-          <ProtectedRoute allowedRoles={["Admin"]}>
-            <StaffList />
-          </ProtectedRoute>
-        } />
-
-        {/* Staff routes */}
-          <Route path="/login-staff" element={
-          <ProtectedRoute allowedRoles={["Admin", "Staff"]}>
-            <LoginStaff />
-          </ProtectedRoute>
-        } />
-
-        <Route path="/register-staff" element={
-          <ProtectedRoute allowedRoles={["Admin", "Staff"]}>
-            <RegisterStaff/>
-          </ProtectedRoute>
-        } />
-        
-
-        <Route path="/orders" element={
-          <ProtectedRoute allowedRoles={["Admin", "Staff"]}>
-            <OrderList />
-          </ProtectedRoute>
-        } />
-
-        <Route path="/inventory" element={
-          <ProtectedRoute allowedRoles={["Admin", "Staff"]}>
-            <InventoryList />
-          </ProtectedRoute>
-        } />
-
-        {/* Customer routes */}
-        <Route path="/payments" element={
-          <ProtectedRoute allowedRoles={["Admin", "Customer"]}>
-            <PaymentList />
-          </ProtectedRoute>
-        } />
-
-        <Route path="/tailor" element={
-          <ProtectedRoute allowedRoles={["Admin", "Staff"]}>
-            <TailorDashboard />
-          </ProtectedRoute>
-        } />
-
-        {/* Shared route */}
-        <Route path="/dashboard" element={
-          <ProtectedRoute allowedRoles={["Admin", "Staff", "Customer"]}>
-            <Dashboard />
-          </ProtectedRoute>
-        } />
-        <Route path="/tailor" element={
-          <ProtectedRoute allowedRoles={["Admin", "Staff", "Customer"]}>
-            <TailorDashboard/>
-          </ProtectedRoute>
-        } />
-        {/* duplicate /tailor route removed */}
-
-        <Route path="/reports/revenue" element={
-          <ProtectedRoute allowedRoles={["Admin"]}>
-             <div className="mt-30 grid grid-cols-2 gap-30">
-            <RevenueReport />
-            <OrderReport />
-            <CustomerReport />
-            <StaffReport />
-            </div> 
-          </ProtectedRoute>
-        } />
-      </Routes>
-      </div>
-      </div>
-    </Router>
-  </Provider>
+          <Route path="*" element={<div><h2>404 Not Found</h2></div>} />
+        </Routes>
+      </Router>
+    </Provider>
   );
 };
 

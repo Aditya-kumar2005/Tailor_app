@@ -1,56 +1,142 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useRef } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import type { RootState } from "../store";
 import { logout } from "../slices/userSlice";
+import { navLinks } from "../data/navLinks";
+import type { Role } from "../data/navLinks";// Import the centralized links
 
+// --- Main Navbar Component ---
 const Navbar: React.FC = () => {
   const user = useSelector((state: RootState) => state.user);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-  const role = user.profile?.role;
+  const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setProfileMenuOpen] = useState(false);
+
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+  const mobileMenuRef = useRef<HTMLDivElement>(null);
+
+  // Close menus when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setProfileMenuOpen(false);
+      }
+      if (mobileMenuRef.current && !mobileMenuRef.current.contains(event.target as Node)) {
+        setMobileMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const handleLogout = () => {
+    dispatch(logout());
+    setProfileMenuOpen(false);
+    navigate("/login");
+  };
+
+  const userRole = user.profile?.role as Role;
+  const accessibleLinks = navLinks.filter(link => user.loggedIn && link.allowedRoles.includes(userRole));
+
+  const linkClassName = ({ isActive }: { isActive: boolean }) =>
+    `block md:inline-block px-3 py-2 rounded-md text-base font-medium transition-colors ${ 
+      isActive 
+      ? 'bg-blue-600 text-white' 
+      : 'text-gray-700 hover:bg-gray-100'
+    }`;
 
   return (
-    <nav className="fixed w-full bg-white text-black p-4 flex justify-between items-center shadow-violet-700 ">
-      <Link to="/" className="font-serif text-blue-600 text-3xl font-bold hover:underline">Tailor Management System</Link>
-      <div className="space-x-4">
-        {/* Shared links */}
-        <Link to="/dashboard" className="hover:underline">Dashboard</Link>
-        <Link to="/tailor" className="hover:underline">TailorDashboard</Link>
+    <nav className="bg-white shadow-md fixed w-full z-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16">
+          
+          {/* --- Logo / Brand --- */}
+          <div className="flex-shrink-0">
+            <NavLink to="/dashboard" className="text-2xl font-bold text-blue-600 font-serif">
+              TailorFlow
+            </NavLink>
+          </div>
 
-        {/* Admin-only links */}
-        {role === "Admin" && (
-          <>
-            <Link to="/customers" className="hover:underline">Customers</Link>
-            <Link to="/staff" className="hover:underline">Staff</Link>
-            <Link to="/reports/revenue" className="hover:underline">Reports</Link>
-          </>
-        )}
+          {/* --- Desktop Navigation --- */}
+          <div className="hidden md:block">
+            <div className="ml-10 flex items-baseline space-x-4">
+              {accessibleLinks.map(link => (
+                <NavLink key={link.path} to={link.path} className={linkClassName}>
+                  {link.label}
+                </NavLink>
+              ))}
+            </div>
+          </div>
 
-        {/* Admin + Staff links */}
-        {(role === "Admin" || role === "Staff") && (
-          <>
-            <Link to="/orders" className="hover:underline">Orders</Link>
-            <Link to="/inventory" className="hover:underline">Inventory</Link>
-          </>
-        )}
+          <div className="flex items-center">
+            {/* --- Profile Dropdown (Desktop) --- */}
+            {user.loggedIn && (
+              <div className="hidden md:block ml-4 relative" ref={profileMenuRef}>
+                <button onClick={() => setProfileMenuOpen(!isProfileMenuOpen)} className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                  <span className="mr-2 text-gray-700">{user.profile?.name}</span>
+                  <div className="w-8 h-8 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold">
+                    {user.profile?.name?.charAt(0).toUpperCase()}
+                  </div>
+                </button>
+                {isProfileMenuOpen && (
+                  <div className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5">
+                    <button onClick={handleLogout} className="w-full text-left block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+                      Logout
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
-        {/* Admin + Customer links */}
-        {(role === "Admin" || role === "Customer") && (
-          <Link to="/payments" className="hover:underline">Payments</Link>
-        )}
-
-        {/* Logout */}
-        {user.loggedIn && (
-          <Link
-            to={""}
-            onClick={() => dispatch(logout())}
-            className="px-5 py-3 ml-4 border-blue-600 border-2 hover:text-white hover:bg-blue-600 rounded-xl"
-          >
-            Logout
-          </Link>
-        )}
+            {/* --- Mobile Menu Button --- */}
+            {user.loggedIn && (
+              <div className="-mr-2 flex md:hidden" ref={mobileMenuRef}>
+                <button onClick={() => setMobileMenuOpen(!isMobileMenuOpen)} className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 focus:outline-none">
+                  <svg className="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                    {isMobileMenuOpen ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                    )}
+                  </svg>
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+
+      {/* --- Mobile Menu --- */}
+      {isMobileMenuOpen && user.loggedIn && (
+        <div className="md:hidden bg-white border-t">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+            {accessibleLinks.map(link => (
+              <NavLink key={link.path} to={link.path} className={linkClassName} onClick={() => setMobileMenuOpen(false)}>
+                {link.label}
+              </NavLink>
+            ))}
+          </div>
+          <div className="pt-4 pb-3 border-t border-gray-200">
+            <div className="flex items-center px-5">
+                <div className="w-10 h-10 bg-blue-500 text-white rounded-full flex items-center justify-center font-bold text-lg">
+                  {user.profile?.name?.charAt(0).toUpperCase()}
+                </div>
+              <div className="ml-3">
+                <p className="text-base font-medium text-gray-800">{user.profile?.name}</p>
+                <p className="text-sm font-medium text-gray-500">{user.profile?.email}</p>
+              </div>
+            </div>
+            <div className="mt-3 px-2 space-y-1">
+              <button onClick={handleLogout} className="w-full text-left block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100">
+                Logout
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </nav>
   );
 };
