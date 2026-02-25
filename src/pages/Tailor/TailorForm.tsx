@@ -12,7 +12,7 @@ interface TailorFormProps {
   onSave: () => void;
 }
 
-const TailorForm: React.FC<TailorFormProps> = ({ tailor, onSave }) => {
+const TailorForm: React.FC<TailorFormProps> = ({ tailor,onSave }) => {
   const dispatch: AppDispatch = useDispatch();
   const { list: customers, loading: customersLoading, error: customersError } = useSelector((state: RootState) => state.customers);
   
@@ -25,74 +25,75 @@ const TailorForm: React.FC<TailorFormProps> = ({ tailor, onSave }) => {
   const [price, setPrice] = useState("");
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
-  const [loading,setLoading]=useState(true);
+  const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState("");
 
   const garmentTypes = ["Shirt", "Pants", "Suit", "Dress", "Coat"];
 
   useEffect(() => {
-    if (tailor) {
-        setCustomerId(customerId||"");
-        setGarmentType(garmentType||"Shirt");
-        setChest(chest||"");
-        setWaist(waist||"");
-        setSleeve(sleeve||"");
-        setLength(length||"");
-        setPrice(price||"");
-        setNotes(notes||"");
-        setSuccess("Measurement added successfully!");
-    } else {
-      setCustomerId("");
-        setGarmentType("Shirt");
-        setChest("");
-        setWaist("");
-        setSleeve("");
-        setLength("");
-        setPrice("");
-        setNotes("");
-        setSuccess("CLEARED SUCCESSFULLY");
-    }
-  }, [tailor]);
+  if (tailor) {
+    setCustomerId(String(tailor.customerId));
+    setGarmentType(tailor.garmentType || "Shirt");
+    setChest(tailor.chest ? String(tailor.chest) : "");
+    setWaist(tailor.waist ? String(tailor.waist) : "");
+    setSleeve(tailor.sleeve ? String(tailor.sleeve) : "");
+    setLength(tailor.length ? String(tailor.length) : "");
+    setPrice(tailor.price ? String(tailor.price) : "");
+    setNotes(tailor.notes || "");
+  } else {
+    setCustomerId("");
+    setGarmentType("Shirt");
+    setChest("");
+    setWaist("");
+    setSleeve("");
+    setLength("");
+    setPrice("");
+    setNotes("");
+  }
+}, [tailor]);
 
   useEffect(() => {
     dispatch(fetchCustomers());
-    dispatch(fetchTailors());
   }, [dispatch]);
   
     const handleSubmit = async (e: React.FormEvent) => {
-      e.preventDefault();
-      setError("");
-      setSuccess("");
-  
-      if (!customerId || !garmentType || !price) {
-        setError("Customer, garment type, and price are required");
-        return;
-      }
-      const newMeasurementData = {
-        customerId: Number(customerId),
-        garmentType,
-        chest: chest ? Number(chest) : undefined,
-        waist: waist ? Number(waist) : undefined,
-        sleeve: sleeve ? Number(sleeve) : undefined,
-        length: length ? Number(length) : undefined,
-        price: Number(price),
-        notes: notes || undefined,
-      };
-  
-      try {
-        if (tailor) {
-        await api.put(`/measurements/${tailor.id}`, newMeasurementData);
-      } else {
-        await api.post('/measurements', newMeasurementData);
-      }
-  
-        // dispatch(fetchTailors()); 
-        onSave();
-      } catch (err) {
-        setError((err as any)?.response?.data?.message || "Failed to add measurement");
-        console.error(err);
-      }
-    };
+  e.preventDefault();
+  setError("");
+  setLoading(true);
+
+  if (!customerId || !garmentType || !price) {
+    setError("Customer, garment type, and price are required");
+    setLoading(false);
+    return;
+  }
+
+  const newMeasurementData = {
+    customerId: Number(customerId),
+    garmentType,
+    chest: chest ? Number(chest) : undefined,
+    waist: waist ? Number(waist) : undefined,
+    sleeve: sleeve ? Number(sleeve) : undefined,
+    length: length ? Number(length) : undefined,
+    price: Number(price),
+    notes: notes || undefined,
+  };
+
+  try {
+    if (tailor) {
+      await api.put(`/measurements/${tailor.id}`, newMeasurementData);
+    } else {
+      await api.post('/measurements', newMeasurementData);
+    }
+
+    onSave();   // ✅ CLOSE MODAL ONLY AFTER SUCCESS
+  } catch (err) {
+    setError(
+      (err as any)?.response?.data?.message || "Failed to save measurement"
+    );
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -102,7 +103,7 @@ const TailorForm: React.FC<TailorFormProps> = ({ tailor, onSave }) => {
     </div>
   )}
 
-  <div className="grid grid-cols-1 gap-y-4">
+  <div className="grid grid-cols-2 gap-4">
 
     {/* Customer */}
     <div>

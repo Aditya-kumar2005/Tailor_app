@@ -30,9 +30,10 @@ const DashboardCard: React.FC<Props> = ({ title, value, color = 'primary' }) => 
         transform 
         hover:scale-105 
         hover:shadow-xl
-        w-full 
         md:w-auto 
-        min-w-50 
+        min-w-1.5
+        w-full
+        h-full
         ${cardColor}
       `}
     >
