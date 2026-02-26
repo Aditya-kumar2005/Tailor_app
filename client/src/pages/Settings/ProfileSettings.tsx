@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import image from "/av.png"
 
 const ProfileSettings: React.FC = () => {
   // State for user profile data
@@ -6,7 +7,7 @@ const ProfileSettings: React.FC = () => {
     name: "Aditya Kumar",
     email: "aditya.kumar@example.com",
     bio: "Software developer and tech enthusiast.",
-    avatar: "https://via.placeholder.com/150", // Placeholder image
+    avatar: null, // Placeholder image
   });
 
   // State for password change
@@ -53,7 +54,7 @@ const ProfileSettings: React.FC = () => {
           
           {/* Profile Picture Upload */}
           <div className="flex items-center mb-6">
-            <img src={profile.avatar} alt="Avatar" className="w-24 h-24 rounded-full object-cover" />
+            <img src={image} alt="Avatar" className="w-24 h-24 rounded-full object-cover" />
             <input type="file" className="ml-6" />
           </div>
 

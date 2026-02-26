@@ -5,7 +5,13 @@ import type { RootState } from "../store";
 import { navLinks} from "../data/navLinks";
 import type { Role } from "../data/navLinks"; // Import the centralized links
 
-const Sidebar: React.FC = () => {
+interface SidebarProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+// const Sidebar: React.FC = () => {
+const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const user = useSelector((state: RootState) => state.user);
   const userRole = user.profile?.role as Role;
 
@@ -23,17 +29,22 @@ const Sidebar: React.FC = () => {
     }`;
 
   return (
-    <aside className="w-64 h-full bg-gray-800 text-white p-4 flex flex-col">
+        <aside
+            className={`fixed top-16 left-0 w-64 h-[calc(100vh-4rem)]
+            bg-gray-800 text-white z-40
+              transform transition-transform duration-300
+            ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+        >
       <div className="flex items-center mb-8">
         {/* You can place a logo here if you have one */}
         <h1 className="text-2xl font-bold text-white">Menu</h1>
       </div>
       
-      <nav className="flex-grow">
+      <nav className="flex">
         <ul className="space-y-2">
           {accessibleLinks.map(link => (
             <li key={link.path}>
-              <NavLink to={link.path} className={linkClassName}>
+              <NavLink to={link.path} className={linkClassName} onClick={onClose}>
                 <link.icon />
                 <span className="ml-3">{link.label}</span>
               </NavLink>

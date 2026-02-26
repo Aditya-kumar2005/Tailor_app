@@ -1,8 +1,8 @@
 import React from "react";
-import { NavLink, Routes, Route, Outlet } from "react-router-dom";
-import ProfileSettings from "./ProfileSettings";
-import SystemSettings from "./SystemSettings";
-
+import { NavLink, Outlet } from "react-router-dom";
+// import ProfileSettings from "./ProfileSettings";
+// import SystemSettings from "./SystemSettings";
+// 
 const Settings: React.FC = () => {
   const linkStyle = {
     base: "px-4 py-2 rounded-t-lg transition-colors duration-200",

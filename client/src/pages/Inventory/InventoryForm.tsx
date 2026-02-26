@@ -48,8 +48,9 @@ const InventoryForm: FC<InventoryFormProps> = ({ item, onSave }) => {
       dispatch(fetchInventory());
       onSave();
 
-    } catch (err: any) {
-      setError(err.response?.data?.error || `Failed to ${item ? 'update' : 'create'} item.`);
+    } catch (err:unknown
+    ) {
+      setError("Failed to send reset link. Please try again."+err);
     } finally {
       setLoading(false);
     }

@@ -1,8 +1,8 @@
 import React, { useState, useEffect} from 'react';
-import { useDispatch } from 'react-redux';
-import type { AppDispatch } from '../../store';
+// import { useDispatch } from 'react-redux';
+// import type { AppDispatch } from '../../store';
 import type { Payment } from '../../types';
-import { fetchPayments } from '../../slices/paymentSlice';
+// import { fetchPayments } from '../../slices/paymentSlice';
 import api from '../../api';
 
 interface PaymentFormProps {
@@ -18,7 +18,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ payment, onSave }) => {
   const [date, setDate] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const dispatch: AppDispatch = useDispatch();
+  // const dispatch: AppDispatch = useDispatch();
 
   useEffect(() => {
     if (payment) {
@@ -53,8 +53,9 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ payment, onSave }) => {
       // dispatch(fetchPayments());
       onSave();
 
-    } catch (err: any) {
-      setError(err.response?.data?.error || `Failed to ${payment ? 'update' : 'create'} payment.`);
+    } catch (err:unknown
+    ) {
+      setError("Failed to send reset link. Please try again."+err);
     } finally {
       setLoading(false);
     }
@@ -111,7 +112,7 @@ const PaymentForm: React.FC<PaymentFormProps> = ({ payment, onSave }) => {
           <select
             id="method"
             value={method}
-            onChange={(e) => setMethod(e.target.value as any)}
+            onChange={(e) => setMethod(e.target.value as "Cash"|"Card"|"Digital")}
             required
             className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
           >

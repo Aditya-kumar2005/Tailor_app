@@ -82,3 +82,71 @@ Looking at your project structure (with `tailor-backend/src/server.js`, configs 
 👉 Right now, your structure is fine for local dev, but for Vercel you’ll need to **split frontend and backend** and convert backend routes into serverless functions.  
 
 Do you want me to sketch out how your current `server.js` (Express) can be refactored into a Vercel‑ready `/api/measurements.js` function? That way you’ll see exactly how to migrate without breaking your existing logic.
+
+
+
+
+
+
+//////////////////////////////////////////////////
+
+
+export default function Navbar() {
+  return (
+    <nav className="navbar">
+      <div className="navbar-container">
+        <Link to="/" className="navbar-brand">
+          📚 Department Management System
+        </Link>
+        <div className="navbar-links">
+          <Link to="/departments">📋 Departments</Link>
+          <Link to="/departments/new">➕ Add Department</Link>
+        </div>
+      </div>
+    </nav>
+  )
+}
+
+
+.navbar {
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  padding: 1rem 2rem;
+  box-shadow: var(--card-shadow-lg);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.navbar-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.navbar-brand {
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.navbar-links {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.navbar-links a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: background-color 0.3s ease;
+}
+
+.navbar-links a:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}

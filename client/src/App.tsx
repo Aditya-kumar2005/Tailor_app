@@ -1,4 +1,4 @@
-import React from "react";
+import React,{useState} from "react";
 import { BrowserRouter as Router, Routes, Route, Outlet, Navigate } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./store";
@@ -37,20 +37,30 @@ import SystemSettings from "./pages/Settings/SystemSettings";
 import TailorList from "./pages/Tailor/TailorList";
 
 const MainLayout: React.FC = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
   return (
-    <div className="flex h-screen bg-red-100 ">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Navbar />
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100 pt-16">
-          <div className="container mx-auto px-6 py-8">
-            <Outlet />
-          </div>
-        </main>
-      </div>
+    <div className="h-screen bg-gray-100">
+      {/* Navbar */}
+      <Navbar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+
+      {/* Sidebar Overlay */}
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        {sidebarOpen && (
+          <div
+            onClick={() => setSidebarOpen(false)}
+          className="fixed inset-0  bg-opacity-30  z-30"
+        />
+        )}
+      {/* Main Content */}
+      <main className="pt-16 px-6 py-8">
+        <Outlet />
+      </main>
     </div>
   );
 };
+
+
 
 const App: React.FC = () => {
   return (

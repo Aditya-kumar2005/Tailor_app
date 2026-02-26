@@ -24,8 +24,8 @@ export const fetchTailors = createAsyncThunk('tailors/fetchTailors', async (_, {
   try {
     const response = await api.get('/measurements'); // 
     return response.data;
-  } catch (error: any) {
-    return rejectWithValue(error.response?.data?.error || 'Failed to fetch tailors');
+  } catch (error:unknown) {
+    return rejectWithValue('Failed to fetch tailors'+error);
   }
 });
 

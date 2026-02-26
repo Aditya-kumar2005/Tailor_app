@@ -49,11 +49,15 @@ const OrderForm: React.FC<OrderFormProps> = ({ order, onSave }) => {
     fetchCustomers();
   }, []);
 
-  const handleItemChange = (index: number, field: keyof OrderItem, value: string | number) => {
-    const newItems = [...items];
-    (newItems[index] as any)[field] = value;
-    setItems(newItems);
-  };
+const handleItemChange = <K extends keyof OrderItem>(
+  index: number,
+  field: K,
+  value: OrderItem[K]
+) => {
+  const newItems = [...items];
+  newItems[index][field] = value;
+  setItems(newItems);
+};
 
   const addItem = () => {
     setItems([...items, { id: Date.now(), name: '', quantity: 1, price: 0 }]);
@@ -80,8 +84,9 @@ const OrderForm: React.FC<OrderFormProps> = ({ order, onSave }) => {
       dispatch(fetchOrders());
       onSave();
 
-    } catch (err: any) {
-      setError(err.response?.data?.error || `Failed to ${order ? 'update' : 'create'} order.`);
+    } catch (err:unknown
+    ) {
+      setError("Failed to send reset link. Please try again."+err);
     } finally {
       setLoading(false);
     }

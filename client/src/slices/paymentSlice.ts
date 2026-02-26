@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import type {PayloadAction } from '@reduxjs/toolkit';
+// import type {PayloadAction } from '@reduxjs/toolkit';
 import api from '../api';
 import type { Payment } from '../types';
 
@@ -32,8 +32,8 @@ export const fetchPayments = createAsyncThunk<
   try {
     const response = await api.get('/payments');
     return response.data;
-  } catch (error: any) {
-    return rejectWithValue(error.response?.data?.error || 'Failed to fetch payments');
+  } catch (error: unknown) {
+    return rejectWithValue( 'Failed to fetch payments'+error);
   }
 });
 

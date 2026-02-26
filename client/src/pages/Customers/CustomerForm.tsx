@@ -54,8 +54,9 @@ const CustomerForm: FC<CustomerFormProps> = ({ customer, onSave }) => {
       dispatch(fetchCustomers()); 
       onSave(); // Close the modal
 
-    } catch (err: any) {
-      setError(err.response?.data?.error || `Failed to ${customer ? 'update' : 'create'} customer`);/////////customer.////////
+    } catch (err:unknown
+    ) {
+      setError("Failed to send reset link. Please try again."+err);
     } finally {
       setLoading(false);
     }

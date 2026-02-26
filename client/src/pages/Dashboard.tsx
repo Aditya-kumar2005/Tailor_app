@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState} from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import api from '../api';
+// import api from '../api';
 import DashboardCard from '../components/DashboardCard';
 import type {RootState} from '../store';
 
@@ -14,10 +14,10 @@ interface DashboardData {
 
 const Dashboard: React.FC = () => {
   const user = useSelector((state: RootState) => state.user.profile);
-  const orders= useSelector((state: RootState) => state.orders.list);
-  const [data, setData] = useState<DashboardData | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // const orders= useSelector((state: RootState) => state.orders.list);
+  const [data] = useState<DashboardData | null>(null);
+  const [loading] = useState(false);
+  const [error] = useState<string | null>(null);
 
   // useEffect(() => {
   //   const fetchData = async () => {

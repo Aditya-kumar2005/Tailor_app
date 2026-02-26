@@ -38,10 +38,9 @@ const Login: React.FC = () => {
       localStorage.setItem("token", token);
       dispatch(login({ profile: user, token }));
       navigate("/dashboard");
-    } catch (err: any) {
-      const message =
-        err.response?.data?.error || "Login failed. Please check your credentials.";
-      setError(message);
+    } catch (err:unknown
+    ) {
+      setError("Failed to send reset link. Please try again."+err);
     } finally {
       setLoading(false);
     }

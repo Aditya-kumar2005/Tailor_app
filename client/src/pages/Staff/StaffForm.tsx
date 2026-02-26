@@ -50,8 +50,9 @@ const StaffForm: React.FC<StaffFormProps> = ({ staff, onSave }) => {
       dispatch(fetchStaff()); 
       onSave();
 
-    } catch (err: any) {
-      setError(err.response?.data?.error || `Failed to ${staff ? 'update' : 'create'} staff member.`);
+    } catch (err:unknown
+    ) {
+      setError("Failed to send reset link. Please try again."+err);
     } finally {
       setLoading(false);
     }

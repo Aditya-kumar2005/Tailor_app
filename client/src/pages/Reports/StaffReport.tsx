@@ -42,7 +42,7 @@ const StaffReport: React.FC = () => {
     );
   }
 
-  const maxPerformance = 100;
+  // const maxPerformance = 100;
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 bg-white rounded-lg shadow-sm h-full">

@@ -19,8 +19,8 @@ export const fetchInventory = createAsyncThunk('inventory/fetchInventory', async
   try {
     const response = await api.get('/inventory');
     return response.data;
-  } catch (error: any) {
-    return rejectWithValue(error.response?.data?.error || 'Failed to fetch inventory');
+  } catch (error: unknown) {
+    return rejectWithValue( 'Failed to fetch inventory'+error);
   }
 });
 

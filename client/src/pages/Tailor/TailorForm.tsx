@@ -3,7 +3,7 @@ import { useDispatch ,useSelector } from 'react-redux';
 import type { AppDispatch } from '../../store';
 import type { RootState } from '../../store';
 import type { Tailor } from '../../types';
-import { fetchTailors } from '../../slices/tailorSlice';
+// import { fetchTailors } from '../../slices/tailorSlice';
 import api from '../../api';
 import { fetchCustomers } from '../../slices/customerSlice';
 
@@ -26,9 +26,9 @@ const TailorForm: React.FC<TailorFormProps> = ({ tailor,onSave }) => {
   const [notes, setNotes] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState("");
+  // const [success, setSuccess] = useState("");
 
-  const garmentTypes = ["Shirt", "Pants", "Suit", "Dress", "Coat"];
+  // const garmentTypes = ["Shirt", "Pants", "Suit", "Dress", "Coat"];
 
   useEffect(() => {
   if (tailor) {
@@ -86,10 +86,8 @@ const TailorForm: React.FC<TailorFormProps> = ({ tailor,onSave }) => {
     }
 
     onSave();   // ✅ CLOSE MODAL ONLY AFTER SUCCESS
-  } catch (err) {
-    setError(
-      (err as any)?.response?.data?.message || "Failed to save measurement"
-    );
+  } catch (err:unknown) {
+    setError( "Failed to save measurement"+err);
   } finally {
     setLoading(false);
   }

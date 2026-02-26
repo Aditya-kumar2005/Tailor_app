@@ -1,7 +1,7 @@
 import { createSlice, createAsyncThunk} from '@reduxjs/toolkit';
-import type {PayloadAction } from '@reduxjs/toolkit';
+// import type {PayloadAction } from '@reduxjs/toolkit';
 import api from '../api';
-import type { Order } from '../types';
+import type { Order, OrderItem } from '../types';
 
 interface OrderState {
   list: Order[];
@@ -19,8 +19,8 @@ export const fetchOrders = createAsyncThunk('orders/fetchOrders', async (_, { re
   try {
     const response = await api.get('/orders');
     return response.data;
-  } catch (error: any) {
-    return rejectWithValue(error.response?.data?.error || 'Failed to fetch orders');
+  } catch (error: unknown) {
+    return rejectWithValue( 'Failed to fetch orders'+error);
   }
 });
 
@@ -39,10 +39,10 @@ const orderSlice = createSlice({
         ? action.payload
         : action.payload?.orders ?? [];
 
-        state.list = rawOrders.map((o: any) => ({
+        state.list = rawOrders.map((o: Order) => ({
         ...o,
         totalAmount: Number(o.totalAmount) || 0,Array: Array.isArray(o.items)
-      ? o.items.map((i: any) => ({
+      ? o.items.map((i: OrderItem) => ({
           ...i,
           quantity: Number(i.quantity) || 0,
           price: Number(i.price) || 0,
