@@ -3,12 +3,14 @@ import image from "/av.png"
 
 const ProfileSettings: React.FC = () => {
   // State for user profile data
-  const [profile, setProfile] = useState({
-    name: "Aditya Kumar",
-    email: "aditya.kumar@example.com",
-    bio: "Software developer and tech enthusiast.",
+  const [profile, setProfile] = useState(
+    {
+    name: "",
+    email: "",
+    bio: "",
     avatar: null, // Placeholder image
-  });
+  }
+  );
 
   // State for password change
   const [password, setPassword] = useState({
@@ -53,9 +55,9 @@ const ProfileSettings: React.FC = () => {
           <h2 className="text-2xl font-semibold text-gray-700 mb-4">Personal Information</h2>
           
           {/* Profile Picture Upload */}
-          <div className="flex items-center mb-6">
+          <div className="flex items-center mb-6 rounded-2xl">
             <img src={image} alt="Avatar" className="w-24 h-24 rounded-full object-cover" />
-            <input type="file" className="ml-6" />
+            <input  type="file" className="ml-20 border-2 border-black h-50 w-4xl rounded-2xl "/>
           </div>
 
           {/* Name Field */}
@@ -97,7 +99,7 @@ const ProfileSettings: React.FC = () => {
             ></textarea>
           </div>
 
-          <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700">Save Profile</button>
+          <button type="submit" className="border-2 hover:bg-gray-200 border-black hover:text-black text-xl w-full h-10 rounded-lg bg-blue-600 text-white">Save Profile</button>
         </form>
 
         <hr className="my-8" />
@@ -121,7 +123,7 @@ const ProfileSettings: React.FC = () => {
             <input type="password" id="confirm-password" name="confirm" value={password.confirm} onChange={handlePasswordChange} className="w-full px-4 py-2 border rounded-lg" />
           </div>
 
-          <button type="submit" className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700">Change Password</button>
+          <button type="submit" className="border-2 hover:bg-gray-200 border-black hover:text-black text-xl w-full h-10 rounded-lg bg-blue-600 text-white">Change Password</button>
         </form>
       </div>
     </div>
