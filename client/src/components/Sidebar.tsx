@@ -35,9 +35,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
   return (
         <aside
-            className={`fixed top-16 left-0 w-64 h-[calc(100vh-4rem)]
-            bg-gray-800 text-white z-40
-              transform transition-transform duration-300
+            className={`fixed top-0 left-0 h-full w-64 bg-gray-600 shadow-lg z-40
+            transform transition-transform duration-300
             ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
         >
       <div className="flex items-center mb-8">
@@ -58,7 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
         </ul>
       </nav>
 
-      <div className="mt-auto text-center text-gray-400 text-sm">
+      <div className="mt-auto text-center text-white text-sm">
         <p>&copy; {new Date().getFullYear()} TailorFlow</p>
       </div>
     </aside>

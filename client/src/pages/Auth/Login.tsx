@@ -33,7 +33,7 @@ const Login: React.FC = () => {
 
     setLoading(true);
     try {
-      const res = await api.post("/login", { email, password });
+      const res = await api.post("/auth/login", { email, password });
       const { user, token } = res.data;
       localStorage.setItem("token", token);
       dispatch(login({ profile: user, token }));

@@ -114,7 +114,7 @@ function authorizeRoles(...allowedRoles) {
 }
 
 // ========== Authentication ==========
-app.post("/login", async (req, res) => {
+app.post("/auth/login", async (req, res) => {
   const { email, password } = req.body;
   const [rows] = await pool.query(
     "SELECT id, email, role, password FROM users WHERE email = ?",
@@ -162,11 +162,14 @@ app.post("/auth/forgot-password", (req, res) => {
 
 // ========== Customers ==========
 app.get("/customers", authenticateToken, async (req, res) => {
-  const [rows] = await pool.query("SELECT * FROM customers");
+  const [rows] = await pool.query(
+    "SELECT * FROM customers WHERE isDeleted = false"
+  );
   res.json(rows);
 });
 
-app.post("/customers", async (req, res) => {
+app.post("/customers",authenticateToken,
+  authorizeRoles("Admin","Staff"), async (req, res) => {
   const { name, phone, email } = req.body;
   const [info] = await pool.query(
     "INSERT INTO customers (name,phone,email) VALUES (?,?,?)",
@@ -176,7 +179,8 @@ app.post("/customers", async (req, res) => {
   res.status(201).json(item[0]);
 });
 
-app.put("/customers/:id", async (req, res) => {
+app.put("/customers/:id",authenticateToken,
+  authorizeRoles("Admin","Staff"), async (req, res) => {
   const id = Number(req.params.id);
   const { name, phone, email } = req.body;
   const [info] = await pool.query(
@@ -188,12 +192,25 @@ app.put("/customers/:id", async (req, res) => {
   res.json(updated[0]);
 });
 
-app.delete("/customers/:id", async (req, res) => {
-  const id = Number(req.params.id);
-  const [info] = await pool.query("DELETE FROM customers WHERE id = ?", [id]);
-  if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
-  res.json({ success: true });
-});
+
+app.patch(
+  "/customers/:id/delete",
+  authenticateToken,
+  authorizeRoles("Admin"),
+  async (req, res) => {
+    const id = Number(req.params.id);
+
+    const [info] = await pool.query(
+      "UPDATE customers SET isDeleted = true WHERE id = ?",
+      [id]
+    );
+
+    if (info.affectedRows === 0)
+      return res.status(404).json({ error: "Not found" });
+
+    res.json({ success: true, id });
+  }
+);
 
 // ========== Orders ==========
 
@@ -214,10 +231,6 @@ app.get("/orders", async (req, res) => {
 });
 
 
-app.get("/orders", async (req, res) => {
-  const [rows] = await pool.query("SELECT * FROM orders");
-  res.json(rows);
-});
 
 app.get("/orders/:id", async (req, res) => {
   const id = Number(req.params.id);

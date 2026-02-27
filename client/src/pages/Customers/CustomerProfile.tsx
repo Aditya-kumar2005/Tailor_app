@@ -1,11 +1,6 @@
 import React from "react";
+import type { Customer } from "../../types";
 
-interface Customer {
-  id: number;
-  name: string;
-  phone: string;
-  email?: string;
-}
 
 const CustomerProfile: React.FC<{ customer: Customer }> = ({ customer }) => (
   <div className="p-6">

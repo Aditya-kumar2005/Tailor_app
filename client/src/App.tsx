@@ -40,25 +40,52 @@ const MainLayout: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="h-screen bg-gray-100">
+    <div className="h-screen overflow-hidden bg-gray-100">
       {/* Navbar */}
       <Navbar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
 
-      {/* Sidebar Overlay */}
+      {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        {sidebarOpen && (
-          <div
-            onClick={() => setSidebarOpen(false)}
-          className="fixed inset-0  bg-opacity-30  z-30"
+
+      {/* Overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 z-30"
+          onClick={() => setSidebarOpen(false)}
         />
-        )}
+      )}
+
       {/* Main Content */}
-      <main className="pt-16 px-6 py-8">
+      <main className="pt-16 h-full overflow-y-auto px-6 py-6">
         <Outlet />
       </main>
     </div>
   );
 };
+
+// const MainLayout: React.FC = () => {
+//   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+//   return (
+//     <div className="h-screen bg-gray-100">
+//       {/* Navbar */}
+//       <Navbar toggleSidebar={() => setSidebarOpen(!sidebarOpen)} />
+
+//       {/* Sidebar Overlay */}
+//       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+//         {sidebarOpen && (
+//           <div
+//             onClick={() => setSidebarOpen(false)}
+//           className="fixed inset-0  bg-opacity-30  z-30"
+//         />
+//         )}
+//       {/* Main Content */}
+//       <main className="pt-16 px-6 py-8">
+//         <Outlet />
+//       </main>
+//     </div>
+//   );
+// };
 
 
 

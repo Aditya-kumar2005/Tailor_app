@@ -3,7 +3,8 @@ export interface Customer {
   name: string;
   email: string;
   phone: string;
-  address: string;
+  // address: string;
+  isDeleted?: boolean;
 }
 
 export interface Order {

@@ -23,9 +23,8 @@ const ForgotPassword: React.FC = () => {
     try {
       const res = await api.post("/auth/forgot-password", { email });
       setMessage(res.data.message || "If an account with that email exists, a password reset link has been sent.");
-    } catch (err:unknown
-    ) {
-      setError("Failed to send reset link. Please try again."+err);
+    } catch {
+      setError("Failed to send reset link. Please try again.");
     } finally {
       setLoading(false);
     }

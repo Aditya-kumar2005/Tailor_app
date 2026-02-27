@@ -3,8 +3,7 @@ import type { FC } from 'react';
 import { useDispatch } from 'react-redux';
 import type { AppDispatch } from '../../store';
 import type { Customer } from '../../types';
-import { fetchCustomers } from '../../slices/customerSlice'; // To refresh the list after save
-import api from '../../api';
+import {createCustomer,updateCustomer} from '../../slices/customerSlice'; // To refresh the list after save
 
 interface CustomerFormProps {
   customer: Customer | null;
@@ -39,21 +38,15 @@ const CustomerForm: FC<CustomerFormProps> = ({ customer, onSave }) => {
     setError(null);
     setLoading(true);
 
-    const customerData = { name, email, phone };
+    const data = { name, email, phone };
 
     try {
-      if (customer) {
-        // -- Update Existing Customer --
-        await api.put(`/customers/${customer.id}`, customerData);
-      } else {
-        // -- Create New Customer --
-        await api.post('/customers', customerData);
-      }
-      
-      // Refresh the customer list to show changes
-      dispatch(fetchCustomers()); 
-      onSave(); // Close the modal
-
+    if (customer) {
+      await dispatch(updateCustomer({ id: customer.id, data })).unwrap();
+    } else {
+      await dispatch(createCustomer(data)).unwrap();
+    }
+    onSave();
     } catch (err:unknown
     ) {
       setError("Failed to send reset link. Please try again."+err);

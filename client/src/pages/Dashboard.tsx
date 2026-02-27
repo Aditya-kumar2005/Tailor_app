@@ -1,4 +1,4 @@
-import React, { useState} from 'react';
+import React,{useState} from 'react';
 import { Link } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 // import api from '../api';
@@ -49,7 +49,7 @@ const Dashboard: React.FC = () => {
         <p className="text-md text-gray-500 mt-1">Here's a snapshot of your business today.</p>
       </header>
 
-      <div className="grid grid-cols-2 gap-10 lg:h-10">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <Link to="/orders">
           <DashboardCard 
             title="Active Orders" 
