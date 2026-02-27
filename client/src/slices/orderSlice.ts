@@ -19,8 +19,8 @@ export const fetchOrders = createAsyncThunk('orders/fetchOrders', async (_, { re
   try {
     const response = await api.get('/orders');
     return response.data;
-  } catch (error: unknown) {
-    return rejectWithValue( 'Failed to fetch orders'+error);
+  } catch {
+    return rejectWithValue( 'Failed to fetch orders');
   }
 });
 
@@ -35,27 +35,24 @@ const orderSlice = createSlice({
         state.error = null;
       })
       .addCase(fetchOrders.fulfilled, (state, action) => {
-        const rawOrders = Array.isArray(action.payload)
+      const rawOrders = Array.isArray(action.payload)
         ? action.payload
         : action.payload?.orders ?? [];
 
         state.list = rawOrders.map((o: Order) => ({
         ...o,
-        totalAmount: Number(o.totalAmount) || 0,Array: Array.isArray(o.items)
-      ? o.items.map((i: OrderItem) => ({
+        totalAmount: Number(o.totalAmount) || 0,
+          items: Array.isArray(o.items)
+          ? o.items.map((i: OrderItem) => ({
           ...i,
           quantity: Number(i.quantity) || 0,
           price: Number(i.price) || 0,
         }))
-      : [],
-  }));
+        : [],
+        }));
 
-  state.loading = false;
-})
-      // .addCase(fetchOrders.fulfilled, (state, action: PayloadAction<Order[]>) => {
-      //   state.list = action.payload;
-      //   state.loading = false;
-      // })
+        state.loading = false;
+        })
       .addCase(fetchOrders.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;

@@ -20,7 +20,12 @@ function loadInitialState(): UserState {
     if (json) {
       const savedState = JSON.parse(json);
       // Don't automatically log in, just restore the user info
-      return { ...savedState, loggedIn: false }; 
+      // return { ...savedState, loggedIn: false }; 
+      return {
+            loggedIn: Boolean(savedState?.token),
+            profile: savedState?.profile ?? null,
+            token: savedState?.token ?? null,
+            };
     }
   } catch {
     // ignore parse errors

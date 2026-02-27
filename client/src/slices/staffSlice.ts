@@ -19,8 +19,8 @@ export const fetchStaff = createAsyncThunk('staff/fetchStaff', async (_, { rejec
   try {
     const response = await api.get('/staff');
     return response.data;
-  } catch (error:unknown) {
-    return rejectWithValue('Failed to fetch staff'+error);
+  } catch{
+    return rejectWithValue('Failed to fetch staff');
   }
 });
 

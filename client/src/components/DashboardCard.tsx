@@ -31,7 +31,7 @@ const DashboardCard: React.FC<Props> = ({ title, value, color = 'primary' }) => 
         hover:scale-105 
         hover:shadow-xl
         md:w-auto 
-        min-w-1.5
+        min-w-24
         w-full
         h-full
         ${cardColor}

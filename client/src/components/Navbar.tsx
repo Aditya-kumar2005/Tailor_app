@@ -62,8 +62,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
           
           {/* --- Logo / Brand ---*/}
           <div className="flex items-center gap-3">
-            <Link
-              to=""
+            <button
               onClick={toggleSidebar}
               className="p-2 rounded-md hover:bg-gray-100 "
             >
@@ -73,7 +72,7 @@ const Navbar: React.FC<NavbarProps> = ({ toggleSidebar }) => {
                 />
               </svg> */}
               ⏩
-             </Link>
+             </button>
 
              <NavLink to="/dashboard" className="text-xl font-bold text-blue-600 font-serif pr-30">
               TailorFlow

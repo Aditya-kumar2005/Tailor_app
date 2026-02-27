@@ -1,9 +1,10 @@
-import React from "react";
+import React,{useEffect} from "react";
 import { NavLink } from "react-router-dom";
 import { useSelector } from "react-redux";
 import type { RootState } from "../store";
 import { navLinks} from "../data/navLinks";
-import type { Role } from "../data/navLinks"; // Import the centralized links
+import type { Role } from "../data/navLinks"; 
+import { useLocation } from "react-router-dom";// Import the centralized links
 
 interface SidebarProps {
   isOpen: boolean;
@@ -14,6 +15,10 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
   const user = useSelector((state: RootState) => state.user);
   const userRole = user.profile?.role as Role;
+  const location = useLocation();
+  useEffect(() => {
+  onClose();
+  }, [location.pathname]);
 
   // Filter links based on user's role
   const accessibleLinks = navLinks.filter(link => 

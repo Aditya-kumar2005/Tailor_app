@@ -24,8 +24,8 @@ export const fetchCustomers = createAsyncThunk('customers/fetchCustomers', async
   try {
     const response = await api.get('/customers');
     return response.data;
-  } catch (error:unknown) {
-    return rejectWithValue( 'Failed to fetch customers'+error);
+  } catch  {
+    return rejectWithValue( 'Failed to fetch customers');
   }
 });
 

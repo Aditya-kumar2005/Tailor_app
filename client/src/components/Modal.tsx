@@ -1,4 +1,4 @@
-import React from 'react';
+import { useEffect } from 'react';
 import type { FC, ReactNode } from 'react';
 import { XMarkIcon } from '@heroicons/react/24/outline';
 
@@ -11,6 +11,18 @@ interface ModalProps {
 
 const Modal: FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
+    useEffect(() => {
+    const handleEsc = (e: KeyboardEvent) => {
+    if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleEsc);
+    document.body.style.overflow = "hidden";
+
+      return () => {
+    document.removeEventListener("keydown", handleEsc);
+    document.body.style.overflow = "auto";
+      };
+      }, [onClose]);
 
   return (
     // --- Backdrop ---

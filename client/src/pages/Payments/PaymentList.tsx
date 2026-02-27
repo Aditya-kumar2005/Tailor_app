@@ -12,7 +12,7 @@ import { PlusIcon, PencilIcon } from '@heroicons/react/24/outline';
 
 const PaymentList: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
-  const { payments, loading, error } = useSelector((state: RootState) => state.payments);
+  const { list:payments, loading, error } = useSelector((state: RootState) => state.payments);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedPayment, setSelectedPayment] = useState<Payment | null>(null);
 

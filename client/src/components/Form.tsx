@@ -27,6 +27,7 @@ const Form: React.FC<Props> = ({ formName, error, fields, onSubmit, submitText =
   const renderField = (field: Field) => {
     const commonProps = {
       id: field.id,
+      name:field.id,
       value: field.value,
       onChange: field.onChange,
       placeholder: field.placeholder,
@@ -40,7 +41,7 @@ const Form: React.FC<Props> = ({ formName, error, fields, onSubmit, submitText =
       case 'select':
         return (
           <select {...commonProps}>
-            {field.placeholder && <option value="">{field.placeholder}</option>}
+            {field.placeholder && <option value="" disabled>{field.placeholder}</option>}
             {field.options?.map(option => (
               <option key={option.value} value={option.value}>{option.label}</option>
             ))}

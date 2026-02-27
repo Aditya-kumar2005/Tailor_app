@@ -25,7 +25,7 @@ interface TableProps<T> {
  * A generic, responsive, and reusable Table component.
  * It supports type-safe data, custom cell rendering, and a clean UI.
  */
-const Table = <T extends Record<string, unknown>>({
+const Table = <T extends Record<string,any>>({
   title, 
   columns, 
   data=[], 
