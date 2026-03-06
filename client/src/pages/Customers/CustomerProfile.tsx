@@ -2,7 +2,7 @@ import React from "react";
 import type { Customer } from "../../types";
 
 
-const CustomerProfile: React.FC<{ customer: Customer }> = ({ customer }) => (
+const CustomerProfile: React.FC<{ customer: Customer }>  = ({ customer })=> (
   <div className="p-6">
     <h2 className="text-xl font-bold mb-4">Customer Profile</h2>
     <p><strong>Name:</strong> {customer.name}</p>

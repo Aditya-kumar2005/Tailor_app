@@ -115,11 +115,24 @@ const TailorForm: React.FC<TailorFormProps> = ({ tailor,onSave }) => {
         className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
       >
         <option value="">{customersLoading ? 'Loading...' : 'Select Customer'}</option>
-          {!customersLoading && customersError && <option value=""            disabled>Error: {customersError}</option>}
+          {!customersLoading && customersError && <option value="" disabled>Error: {customersError}</option>}
           {Array.isArray(customers) && customers.map(c => (
             <option key={c.id} value={c.id}>{c.name}</option>
           ))}
       </select>
+    </div>
+
+    {/* Notes */}
+    <div>
+      <label className="block text-sm font-medium text-gray-700">
+        Notes
+      </label>
+      <textarea
+        value={notes}
+        onChange={(e) => setNotes(e.target.value)}
+        rows={3}
+        className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+      />
     </div>
 
     {/* Garment Type */}

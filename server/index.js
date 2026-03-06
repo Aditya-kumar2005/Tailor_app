@@ -1,4 +1,3 @@
-// import dotenv from "./"
 require('dotenv').config();
 // pull database configuration from environment variables
 const {
@@ -33,53 +32,10 @@ async function initDb() {
     connectionLimit: Number(DB_CONN_LIMIT) || 10,
     queueLimit: 0
   });
-
-  // execute schema file if exists
-  // const schemaPath = path.join(__dirname, 'schema_mysql.sql');
-  // if (fs.existsSync(schemaPath)) {
-  //   const sql = fs.readFileSync(schemaPath, 'utf-8');
-  //   const statements = sql.split(/;\s*\n/).map(s=>s.trim()).filter(Boolean);
-  //   for (const stmt of statements) {
-  //     await pool.query(stmt);
-  //   }
-  // } else {
-  //   console.warn('schema_mysql.sql not found, database schema may be missing');
-  // }
-
-  // // ensure users table has name column (in case it existed before schema update)
-  // try {
-  //   // check if the column already exists to avoid syntax errors on older MySQL
-  //   const [cols] = await pool.query("SHOW COLUMNS FROM users LIKE 'name'");
-  //   if (cols.length === 0) {
-  //     await pool.query("ALTER TABLE users ADD COLUMN name VARCHAR(255)");
-  //   }
-  // } catch (e) {
-  //   // if something goes wrong, log but don't crash
-  //   console.warn('Could not verify/add name column in users table', e.message);
-  // }
 }
 const app = express();
 app.use(cors());
 app.use(express.json());
-// const allowedOrigins = ['https://5173-firebase-tailorappgit-1771855280716.cluster-bg6uurscprhn6qxr6xwtrhvkf6.cloudworkstations.dev'];
-
-// const corsOptions = {
-//   origin: function (origin, callback) {
-//     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-//       callback(null, true);
-//     } else {
-//       callback(new Error('Not allowed by CORS'));
-//     }
-//   }
-// };
-
-// Use the CORS middleware
-// app.use(cors(corsOptions));
-
-
-
-// no longer using in-memory arrays or file storage
-
 // helper – create a signed JWT
 function signToken(user) {
   // keep only the data you need on the client
@@ -163,54 +119,65 @@ app.post("/auth/forgot-password", (req, res) => {
 // ========== Customers ==========
 app.get("/customers", authenticateToken, async (req, res) => {
   const [rows] = await pool.query(
-    "SELECT * FROM customers WHERE isDeleted = false"
+    "SELECT * FROM customers ORDER BY id DESC"
   );
   res.json(rows);
 });
 
-app.post("/customers",authenticateToken,
-  authorizeRoles("Admin","Staff"), async (req, res) => {
-  const { name, phone, email } = req.body;
+
+// app.post("/customers",authenticateToken,
+//   authorizeRoles("Admin","Staff"), async (req, res) => {
+app.post("/customers",authenticateToken, async (req, res) => {
+  const { name, phone, email ,address} = req.body;
   const [info] = await pool.query(
-    "INSERT INTO customers (name,phone,email) VALUES (?,?,?)",
-    [name, phone, email]
+    "INSERT INTO customers (name,phone,email,address) VALUES (?,?,?,?)",
+    [name, phone, email ,address]
   );
   const [item] = await pool.query("SELECT * FROM customers WHERE id = ?", [info.insertId]);
   res.status(201).json(item[0]);
 });
 
-app.put("/customers/:id",authenticateToken,
-  authorizeRoles("Admin","Staff"), async (req, res) => {
+app.put("/customers/:id",authenticateToken, async (req, res) => {
   const id = Number(req.params.id);
-  const { name, phone, email } = req.body;
+  const { name, phone, email ,address} = req.body;
   const [info] = await pool.query(
-    "UPDATE customers SET name=?, phone=?, email=? WHERE id=?",
-    [name, phone, email, id]
+    "UPDATE customers SET name=?, phone=?, email=? ,address=? WHERE id=?",
+    [name, phone, email,address, id]
   );
   if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
   const [updated] = await pool.query("SELECT * FROM customers WHERE id = ?", [id]);
   res.json(updated[0]);
 });
-
-
-app.patch(
-  "/customers/:id/delete",
+app.delete(
+  "/customers/:id",
   authenticateToken,
   authorizeRoles("Admin"),
   async (req, res) => {
-    const id = Number(req.params.id);
-
-    const [info] = await pool.query(
-      "UPDATE customers SET isDeleted = true WHERE id = ?",
-      [id]
-    );
-
-    if (info.affectedRows === 0)
-      return res.status(404).json({ error: "Not found" });
-
-    res.json({ success: true, id });
+    const [info] = await pool.query("DELETE FROM customers WHERE id=?", [
+      req.params.id,
+    ]);
+    if (!info.affectedRows) return res.status(404).json({ error: "Not found" });
+    res.json({ success: true });
   }
 );
+
+// app.patch(
+//   "/customers/:id/delete",
+//   authenticateToken,
+//   async (req, res) => {
+//     const id = Number(req.params.id);
+
+//     const [info] = await pool.query(
+//       "UPDATE customers SET isDeleted = true WHERE id = ?",
+//       [id]
+//     );
+
+//     if (info.affectedRows === 0)
+//       return res.status(404).json({ error: "Not found" });
+
+//     res.json({ success: true, id });
+//   }
+// );
 
 // ========== Orders ==========
 
@@ -377,10 +344,10 @@ app.get("/staff", async (req, res) => {
 });
 
 app.post("/staff", authenticateToken, authorizeRoles('Admin','Manager'), async (req, res) => {
-  const { name, role } = req.body;
+  const { name, role ,email,phone} = req.body;
   const [info] = await pool.query(
-    "INSERT INTO staff (name,role) VALUES (?,?)",
-    [name, role]
+    "INSERT INTO staff (name,role ,email,phone) VALUES (?,?,?,?)",
+    [name, role,email,phone]
   );
   const [item] = await pool.query("SELECT * FROM staff WHERE id = ?", [info.insertId]);
   res.status(201).json(item[0]);
@@ -388,10 +355,10 @@ app.post("/staff", authenticateToken, authorizeRoles('Admin','Manager'), async (
 
 app.put("/staff/:id", async (req, res) => {
   const id = Number(req.params.id);
-  const { name, role } = req.body;
+  const { name, role ,email,phone} = req.body;
   const [info] = await pool.query(
     "UPDATE staff SET name=?, role=? WHERE id=?",
-    [name, role, id]
+    [name, role,email,phone, id]
   );
   if (info.affectedRows === 0) return res.status(404).json({ error: "Not found" });
   const [updated] = await pool.query("SELECT * FROM staff WHERE id = ?", [id]);
@@ -483,4 +450,3 @@ initDb()
     console.error("Failed to initialize database", err);
     process.exit(1);
   });
-

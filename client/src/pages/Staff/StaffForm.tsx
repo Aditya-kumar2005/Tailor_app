@@ -52,7 +52,7 @@ const StaffForm: React.FC<StaffFormProps> = ({ staff, onSave }) => {
 
     } catch (err:unknown
     ) {
-      setError("Failed to send reset link. Please try again."+err);
+      setError("Failed to send reset link. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -92,7 +92,7 @@ const StaffForm: React.FC<StaffFormProps> = ({ staff, onSave }) => {
         <div>
           <label htmlFor="phone" className="block text-sm font-medium text-gray-700">Phone</label>
           <input
-            type="tel"
+            type="text"
             id="phone"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}

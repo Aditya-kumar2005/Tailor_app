@@ -2,14 +2,14 @@ import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import type { AppDispatch, RootState } from '../../store';
 import type { Customer } from '../../types';
-
 import {
   fetchCustomers,
-  softDeleteCustomer,
   setSearch,
   setPage,
   selectVisibleCustomers,
   selectTotalPages,
+  // 👉 Add a hard delete thunk in your slice, e.g. deleteCustomer
+  deleteCustomer,
 } from '../../slices/customerSlice';
 
 import Table, { type Column } from '../../components/Table';
@@ -26,10 +26,9 @@ import {
 const CustomerList: React.FC = () => {
   const dispatch: AppDispatch = useDispatch();
 
-  const { loading, error, search, page } = useSelector(
+  const { loading, error, search = '', page } = useSelector(
     (state: RootState) => state.customers
   );
-
   const customers = useSelector(selectVisibleCustomers);
   const totalPages = useSelector(selectTotalPages);
 
@@ -53,19 +52,20 @@ const CustomerList: React.FC = () => {
   };
 
   const handleViewProfile = (customer: Customer) => {
-    console.log('Viewing profile:', customer);
+    console.log(customer);
+  setIsModalOpen(true);
   };
 
   const closeModal = () => {
     setIsModalOpen(false);
     setSelectedCustomer(null);
   };
-
   /* ---------- Table Columns ---------- */
   const columns: Column<Customer>[] = [
     { header: 'Name', accessor: 'name' },
     { header: 'Email', accessor: 'email' },
     { header: 'Phone', accessor: 'phone' },
+    { header: 'Address', accessor: 'address' },
     {
       header: 'Actions',
       accessor: 'id',
@@ -86,7 +86,7 @@ const CustomerList: React.FC = () => {
           </button>
 
           <button
-            onClick={() => dispatch(softDeleteCustomer(customer.id))}
+            onClick={() => dispatch(deleteCustomer(customer.id))}
             className="p-2 text-red-500 hover:text-red-700"
           >
             <TrashIcon className="h-5 w-5" />
@@ -98,7 +98,7 @@ const CustomerList: React.FC = () => {
 
   /* ---------- Loading / Error ---------- */
   if (loading) return <div className="p-6">Loading customers...</div>;
-  if (error) return <div className="p-6 text-red-600">{error}</div>;
+  if (error) return <div className="p-6 text-red-600">{String(error)}</div>;
 
   return (
     <div className="p-6 space-y-6">
@@ -119,6 +119,9 @@ const CustomerList: React.FC = () => {
           Add Customer
         </button>
       </div>
+
+      
+
 
       {/* Search */}
       <input

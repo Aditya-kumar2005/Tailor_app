@@ -1,4 +1,4 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import api from '../api';
 import type { Customer } from '../types';
@@ -22,10 +22,12 @@ const initialState: CustomerState = {
   pageSize: 5,
 };
 
+const selectCustomersState = (state: RootState) => state.customers;
+
 /* ---------------- THUNKS ---------------- */
 
 export const fetchCustomers = createAsyncThunk(
-  'customers/fetch',
+  'customers/fetchCustomers',
   async (_, { rejectWithValue }) => {
     try {
       const res = await api.get('/customers');
@@ -37,7 +39,7 @@ export const fetchCustomers = createAsyncThunk(
 );
 
 export const createCustomer = createAsyncThunk(
-  'customers/create',
+  'customers/createCustomer',
   async (data: Partial<Customer>) => {
     const res = await api.post('/customers', data);
     return res.data as Customer;
@@ -51,14 +53,15 @@ export const updateCustomer = createAsyncThunk(
     return res.data as Customer;
   }
 );
-
-export const softDeleteCustomer = createAsyncThunk(
-  'customers/softDelete',
+export const deleteCustomer = createAsyncThunk(
+  'customers/deleteCustomer',
   async (id: number) => {
-    await api.patch(`/customers/${id}/delete`);
+    await api.delete(`/customers/${id}`);
     return id;
   }
 );
+
+
 
 /* ---------------- SLICE ---------------- */
 
@@ -76,30 +79,33 @@ const customerSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+      /* Fetch Customers */
       .addCase(fetchCustomers.pending, (state) => {
         state.loading = true;
+        state.error = null;
       })
-      .addCase(fetchCustomers.fulfilled, (state, action) => {
-        state.list = action.payload;
+      .addCase(fetchCustomers.fulfilled, (state, action: PayloadAction<Customer[]>) => {
         state.loading = false;
+        state.list = action.payload;
       })
       .addCase(fetchCustomers.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload as string;
+        state.error = (action.payload as string) ?? action.error.message ?? 'Unknown error';
       })
 
-      .addCase(createCustomer.fulfilled, (state, action) => {
+      /* Create Customer */
+      .addCase(createCustomer.fulfilled, (state, action: PayloadAction<Customer>) => {
         state.list.unshift(action.payload);
       })
 
-      .addCase(updateCustomer.fulfilled, (state, action) => {
+      /* Update Customer */
+      .addCase(updateCustomer.fulfilled, (state, action: PayloadAction<Customer>) => {
         const i = state.list.findIndex(c => c.id === action.payload.id);
         if (i !== -1) state.list[i] = action.payload;
       })
-
-      .addCase(softDeleteCustomer.fulfilled, (state, action) => {
-        const customer = state.list.find(c => c.id === action.payload);
-        if (customer) customer.isDeleted = true;
+      // In extraReducers:
+      .addCase(deleteCustomer.fulfilled, (state, action: PayloadAction<number>) => {
+      state.list = state.list.filter(c => c.id !== action.payload);
       });
   },
 });
@@ -108,31 +114,31 @@ export const { setSearch, setPage } = customerSlice.actions;
 export default customerSlice.reducer;
 
 /* ---------------- SELECTORS ---------------- */
+export const selectVisibleCustomers = createSelector(
+  [selectCustomersState],
+  ({ list, search, page, pageSize }) => {
+    const filtered = list.filter(
+      c =>
+        `${c.name} ${c.email} ${c.phone}`
+          .toLowerCase()
+          .includes(search.toLowerCase())
+    );
 
-export const selectVisibleCustomers = (state: RootState) => {
-  const { list, search, page, pageSize } = state.customers;
+    const start = (page - 1) * pageSize;
+    return filtered.slice(start, start + pageSize);
+  }
+);
 
-  const filtered = list.filter(
-    c =>
-      !c.isDeleted &&
-      `${c.name} ${c.email} ${c.phone}`
-        .toLowerCase()
-        .includes(search.toLowerCase())
-  );
+export const selectTotalPages = createSelector(
+  [selectCustomersState],
+  ({ list, search, pageSize }) => {
+    const count = list.filter(
+      c =>
+        `${c.name} ${c.email} ${c.phone}`
+          .toLowerCase()
+          .includes(search.toLowerCase())
+    ).length;
 
-  const start = (page - 1) * pageSize;
-  return filtered.slice(start, start + pageSize);
-};
-
-export const selectTotalPages = (state: RootState) => {
-  const { list, search, pageSize } = state.customers;
-  const count = list.filter(
-    c =>
-      !c.isDeleted &&
-      `${c.name} ${c.email} ${c.phone}`
-        .toLowerCase()
-        .includes(search.toLowerCase())
-  ).length;
-
-  return Math.ceil(count / pageSize);
-};
+    return Math.ceil(count / pageSize);
+  }
+);
