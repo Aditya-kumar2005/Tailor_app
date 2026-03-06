@@ -122,19 +122,6 @@ const TailorForm: React.FC<TailorFormProps> = ({ tailor,onSave }) => {
       </select>
     </div>
 
-    {/* Notes */}
-    <div>
-      <label className="block text-sm font-medium text-gray-700">
-        Notes
-      </label>
-      <textarea
-        value={notes}
-        onChange={(e) => setNotes(e.target.value)}
-        rows={3}
-        className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-      />
-    </div>
-
     {/* Garment Type */}
     <div>
       <label className="block text-sm font-medium text-gray-700">
